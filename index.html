@@ -1,0 +1,3053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Deca Homes Urdaneta — Buyer CRM & Pipeline Database</title>
+  
+  <!-- Mobile PWA Standalone Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Deca CRM">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="apple-touch-icon" href="https://img.icons8.com/color/192/real-estate.png">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Tesseract.js OCR Engine -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Space Grotesk"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fef2f2',
+              100: '#fee2e2',
+              500: '#ef4444',
+              600: '#dc2626',
+              700: '#b91c1c',
+              800: '#991b1b',
+              900: '#7f1d1d',
+              gold: '#d97706',
+              navy: '#0f172a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-feature-settings: "cv02", "cv03", "cv04", "cv11"; }
+    .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    /* White Form Scanner Line Effect */
+    @keyframes scan-animation {
+      0% { top: 0%; opacity: 0.8; }
+      50% { opacity: 1; }
+      100% { top: 96%; opacity: 0.8; }
+    }
+    .scan-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #ef4444, #f59e0b, #ef4444, transparent);
+      box-shadow: 0 0 12px 3px rgba(239, 68, 68, 0.7);
+      animation: scan-animation 2s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+  </style>
+  <!-- Anti-flash Dark Mode Init -->
+  <script>
+    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col antialiased selection:bg-red-700 selection:text-white transition-colors duration-150">
+
+  <!-- SECURITY MASTER PIN LOCK OVERLAY -->
+  <div id="pinLockOverlay" class="fixed inset-0 bg-slate-950 z-[100] flex flex-col items-center justify-center p-4 transition-opacity duration-300 hidden">
+    <div class="max-w-sm w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 text-center shadow-2xl space-y-6">
+      
+      <!-- Brand Logo -->
+      <div class="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-red-700 flex items-center justify-center shadow-lg shadow-red-950/60">
+        <i data-lucide="shield-lock" class="w-8 h-8 text-white"></i>
+      </div>
+
+      <div>
+        <h2 class="text-lg font-bold font-display text-white">Deca Homes Urdaneta</h2>
+        <p class="text-xs text-rose-300 font-semibold mt-0.5">Consultant Master CRM Vault</p>
+        <p class="text-[11px] text-slate-400 mt-2">I-type ang Consultant PIN para ma-access ang buyer database.</p>
+      </div>
+
+      <!-- PIN Input Display (4 Dots) -->
+      <div class="flex items-center justify-center gap-3 py-2">
+        <span id="pinDot1" class="w-4 h-4 rounded-full border-2 border-slate-600 transition-all"></span>
+        <span id="pinDot2" class="w-4 h-4 rounded-full border-2 border-slate-600 transition-all"></span>
+        <span id="pinDot3" class="w-4 h-4 rounded-full border-2 border-slate-600 transition-all"></span>
+        <span id="pinDot4" class="w-4 h-4 rounded-full border-2 border-slate-600 transition-all"></span>
+      </div>
+      <p id="pinErrorMsg" class="text-xs text-rose-500 font-semibold hidden">Maling PIN. Subukan muli.</p>
+
+      <!-- Keypad Grid (1-9, Clear, 0, Backspace) -->
+      <div class="grid grid-cols-3 gap-2.5 max-w-[240px] mx-auto text-white font-bold">
+        <button onclick="pressPin('1')" class="h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-lg transition active:scale-95">1</button>
+        <button onclick="pressPin('2')" class="h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-lg transition active:scale-95">2</button>
+        <button onclick="pressPin('3')" class="h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-lg transition active:scale-95">3</button>
+        <button onclick="pressPin('4')" class="h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-lg transition active:scale-95">4</button>
+        <button onclick="pressPin('5')" class="h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-lg transition active:scale-95">5</button>
+        <button onclick="pressPin('6')" class="h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-lg transition active:scale-95">6</button>
+        <button onclick="pressPin('7')" class="h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-lg transition active:scale-95">7</button>
+        <button onclick="pressPin('8')" class="h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-lg transition active:scale-95">8</button>
+        <button onclick="pressPin('9')" class="h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-lg transition active:scale-95">9</button>
+        <button onclick="clearPin()" class="h-12 rounded-xl bg-slate-800/50 hover:bg-slate-800 text-xs text-slate-400 transition active:scale-95">Clear</button>
+        <button onclick="pressPin('0')" class="h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-lg transition active:scale-95">0</button>
+        <button onclick="backspacePin()" class="h-12 rounded-xl bg-slate-800/50 hover:bg-slate-800 flex items-center justify-center text-slate-400 transition active:scale-95">
+          <i data-lucide="delete" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="text-[10px] text-slate-500 pt-2">
+        Default PIN: <strong class="text-slate-400">2062</strong> • John Edcee Cañizares (0919 368 2062)
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP HEADER -->
+  <header class="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-30 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-red-700 flex items-center justify-center shadow-lg shadow-red-950/40">
+          <i data-lucide="home" class="w-5 h-5 text-white font-bold"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+        <button id="theme-toggle-btn" onclick="toggleDarkMode()" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition shadow-sm" title="Toggle Light / Dark Mode">
+          <i data-lucide="moon" id="theme-toggle-icon" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span class="hidden sm:inline" id="theme-toggle-label">Dark</span>
+        </button>
+        <button onclick="lockScreenNow()" class="px-2 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1 transition shadow-sm" title="Lock Database Screen (PIN: 2062)">
+          <i data-lucide="lock" class="w-3.5 h-3.5 text-amber-400"></i>
+        </button>
+
+            <h1 class="text-base sm:text-lg font-bold font-display tracking-tight text-white flex items-center gap-1.5">
+              Deca Homes Urdaneta <span class="text-rose-300 font-semibold text-xs px-2.5 py-0.5 bg-red-950/80 border border-red-800/70 rounded-full">Expanded 4PH</span>
+            </h1>
+          </div>
+          <p class="text-xs text-slate-400">
+            Client & Documentation Pipeline Database • <span class="text-slate-200 font-semibold">John Edcee Cañizares</span> (0919 368 2062)
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2">
+        <button onclick="openAbsorbModal()" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-white flex items-center gap-1.5 shadow-md shadow-red-950/40 transition transform active:scale-95 border border-amber-400/40" title="Upload, scan, o i-paste ang White Form image para ma-encode agad">
+          <i data-lucide="scan" class="w-3.5 h-3.5 text-amber-200"></i>
+          <span>Absorb White Form</span>
+        </button>
+        <button onclick="openGoogleSheetModal()" id="btnHeaderGSheetSync" class="relative px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-950/80 hover:bg-red-900 text-rose-200 border border-red-800/70 flex items-center gap-1.5 transition shadow-sm" title="Sync with Google Sheets (jceecanzares@gmail.com)">
+          <i data-lucide="sheet" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span>Google Sheet Sync</span>
+          <span id="headerSyncDot" class="w-2 h-2 rounded-full bg-rose-500 inline-block animate-ping hidden"></span>
+          <span id="headerSyncBadge" class="hidden text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-rose-600 text-white">Unsynced</span>
+        </button>
+        <a href="../watermark-studio/index.html" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition shadow-sm" title="Watermark Studio Pro">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span class="hidden xl:inline">Watermark</span>
+        </a>
+        <a href="../post-maker-mobile/index.html" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition shadow-sm" title="Post Maker Mobile">
+          <i data-lucide="smartphone" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span class="hidden xl:inline">Post Maker</span>
+        </a>
+        <a href="../white-form-assistant/index.html" target="_blank" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition shadow-sm">
+          <i data-lucide="file-text" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span class="hidden sm:inline">White Form</span> Assistant
+        </a>
+        <button onclick="exportToCSV()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition shadow-sm" title="Download Excel-compatible CSV">
+          <i data-lucide="download" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span>Export CSV</span>
+        </button>
+        <button onclick="openAddModal()" class="px-3.5 py-1.5 text-xs font-bold rounded-lg bg-red-700 hover:bg-red-600 text-white flex items-center gap-1.5 shadow-md shadow-red-900/30 transition transform active:scale-95">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+          <span>Add Client</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- DYNAMIC SYNC ALERT BANNER -->
+  <div id="syncAlertBanner" class="bg-amber-500/10 dark:bg-amber-950/40 border-b border-amber-300/80 dark:border-amber-800/60 px-4 sm:px-6 py-2 text-xs transition-all hidden">
+    <div class="max-w-7xl mx-auto w-full flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span class="flex h-2.5 w-2.5 relative shrink-0">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-600"></span>
+        </span>
+        <span class="font-bold text-amber-900 dark:text-amber-300">Pending Sync:</span>
+        <span id="syncBannerText" class="text-slate-700 dark:text-slate-300">May mga bagong buyer record o pagbabago sa database na hindi pa naka-sync sa iyong Google Sheet (jceecanzares@gmail.com).</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="syncToGoogleSheet()" class="px-3 py-1 bg-red-700 hover:bg-red-600 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition">
+          <i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i>
+          <span>Sync Now to Google Sheet</span>
+        </button>
+        <button onclick="openGoogleSheetModal()" class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 text-xs underline px-1">
+          Sync Settings
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUB-BAR: STATS & QUICK METRICS -->
+  <div class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 dark:border-slate-800 shadow-sm transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <!-- Metric Total -->
+        <div class="bg-slate-50 dark:bg-slate-800/60 p-2.5 sm:p-3 rounded-xl border border-slate-200/80 dark:border-slate-700 flex items-center justify-between">
+          <div>
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Leads & Buyers</div>
+            <div id="stat-total" class="text-xl sm:text-2xl font-bold font-display text-slate-900 dark:text-white mt-0.5">0</div>
+          </div>
+          <div class="w-8 h-8 rounded-lg bg-slate-200/70 dark:bg-slate-700/80 flex items-center justify-center text-slate-700 dark:text-slate-200">
+            <i data-lucide="users" class="w-4 h-4"></i>
+          </div>
+        </div>
+
+        <!-- Metric 1: Pre-qualified -->
+        <div class="bg-amber-50/60 dark:bg-amber-950/30 p-2.5 sm:p-3 rounded-xl border border-amber-200/80 dark:border-amber-900/50 flex items-center justify-between">
+          <div>
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-amber-500 inline-block animate-pulse"></span> (1) Pre-Qualified
+            </div>
+            <div id="stat-status-1" class="text-xl sm:text-2xl font-bold font-display text-amber-900 dark:text-amber-200 mt-0.5">0</div>
+          </div>
+          <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-amber-700 dark:text-amber-300">
+            <i data-lucide="user-check" class="w-4 h-4"></i>
+          </div>
+        </div>
+
+        <!-- Metric 2: Complying -->
+        <div class="bg-blue-50/60 dark:bg-blue-950/30 p-2.5 sm:p-3 rounded-xl border border-blue-200/80 dark:border-blue-900/50 flex items-center justify-between">
+          <div>
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-400 flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span> (2) Complying Docs
+            </div>
+            <div id="stat-status-2" class="text-xl sm:text-2xl font-bold font-display text-blue-900 dark:text-blue-200 mt-0.5">0</div>
+          </div>
+          <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-700 dark:text-blue-300">
+            <i data-lucide="clock" class="w-4 h-4"></i>
+          </div>
+        </div>
+
+        <!-- Metric 3: Submitted to DECA -->
+        <div class="bg-rose-50/70 dark:bg-red-950/40 p-2.5 sm:p-3 rounded-xl border border-rose-200/80 dark:border-red-900/50 flex items-center justify-between">
+          <div>
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-rose-800 dark:text-rose-300 flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-red-600 inline-block"></span> (3) Submitted to DECA
+            </div>
+            <div id="stat-status-3" class="text-xl sm:text-2xl font-bold font-display text-rose-950 dark:text-rose-100 mt-0.5">0</div>
+          </div>
+          <div class="w-8 h-8 rounded-lg bg-rose-100 dark:bg-red-900/50 flex items-center justify-center text-red-700 dark:text-rose-300">
+            <i data-lucide="check-check" class="w-4 h-4"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN TOOLBAR & CONTROLS -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full flex flex-col">
+    <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mb-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <!-- Search & Filters -->
+      <div class="flex flex-1 flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+        <div class="relative flex-1">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input type="text" id="searchInput" oninput="renderApp()" placeholder="Search by name, phone, MID, or employer..." 
+            class="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white dark:focus:bg-slate-800 transition">
+        </div>
+        
+        <select id="statusFilter" onchange="renderApp()" class="px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 text-slate-700 font-medium">
+          <option value="ALL">All Statuses</option>
+          <option value="1">(1) Pre-qualified</option>
+          <option value="2">(2) Complying with requirements</option>
+          <option value="3">(3) Submitted docs to DECA</option>
+        </select>
+
+        <select id="trackFilter" onchange="renderApp()" class="px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 text-slate-700 font-medium">
+          <option value="ALL">All Employment Tracks</option>
+          <option value="Locally Employed">Locally Employed</option>
+          <option value="Overseas Filipino Worker (OFW)">OFW</option>
+          <option value="Freelancer / Virtual Assistant">Freelancer / VA</option>
+          <option value="Self-Employed / Business Owner">Self-Employed</option>
+        </select>
+      </div>
+
+      <!-- View Switcher -->
+      <div class="flex items-center justify-end gap-2 border-t md:border-t-0 pt-2 md:pt-0 border-slate-100">
+        <div class="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200/80 dark:border-slate-700">
+          <button id="view-kanban-btn" onclick="setViewMode('kanban')" class="px-3 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 transition bg-white text-slate-900 shadow-sm">
+            <i data-lucide="kanban" class="w-3.5 h-3.5"></i>
+            <span>Pipeline Board</span>
+          </button>
+          <button id="view-table-btn" onclick="setViewMode('table')" class="px-3 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition text-slate-600 hover:text-slate-900">
+            <i data-lucide="table" class="w-3.5 h-3.5"></i>
+            <span>Data Table</span>
+          </button>
+        </div>
+
+        <!-- Sync / Backup Menu -->
+        <button onclick="exportJSON()" class="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition" title="Export Full JSON Backup">
+          <i data-lucide="save" class="w-4 h-4"></i>
+        </button>
+        <button onclick="document.getElementById('importFileInput').click()" class="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition" title="Import JSON Database">
+          <i data-lucide="upload" class="w-4 h-4"></i>
+        </button>
+        <input type="file" id="importFileInput" onchange="importJSON(event)" accept=".json" class="hidden">
+      </div>
+    </div>
+
+    <!-- KANBAN BOARD CONTAINER -->
+    <div id="kanban-view" class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start flex-1">
+      
+      <!-- COLUMN 1: PRE-QUALIFIED -->
+      <div class="bg-slate-100/80 dark:bg-slate-900/70 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 flex flex-col max-h-[calc(100vh-250px)]">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+            <h2 class="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider font-display">(1) Pre-Qualified</h2>
+          </div>
+          <span id="badge-col-1" class="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">0</span>
+        </div>
+        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-2 mb-3">Pumasa sa income ceiling at Pag-IBIG MID active; handang pumili ng unit at mag-reserve.</p>
+        
+        <div id="cards-col-1" class="space-y-3 overflow-y-auto pr-1 flex-1 min-h-[150px]">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+
+      <!-- COLUMN 2: COMPLYING WITH REQUIREMENTS -->
+      <div class="bg-slate-100/80 dark:bg-slate-900/70 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 flex flex-col max-h-[calc(100vh-250px)]">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+            <h2 class="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider font-display">(2) Complying Docs</h2>
+          </div>
+          <span id="badge-col-2" class="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">0</span>
+        </div>
+        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-2 mb-3">Nangangalap ng 1-mo payslip/COEC, IDs, PSA, ORUS TIN, White Form, o SPA.</p>
+        
+        <div id="cards-col-2" class="space-y-3 overflow-y-auto pr-1 flex-1 min-h-[150px]">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+
+      <!-- COLUMN 3: SUBMITTED DOCS TO DECA -->
+      <div class="bg-slate-100/80 dark:bg-slate-900/70 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 flex flex-col max-h-[calc(100vh-250px)]">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full bg-red-600"></div>
+            <h2 class="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider font-display">(3) Submitted to DECA</h2>
+          </div>
+          <span id="badge-col-3" class="text-xs font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-900 border border-rose-200">0</span>
+        </div>
+        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-2 mb-3">Naipasa na sa DECA Office sa San Vicente East; sumailalim/naka-schedule sa Office Orientation Seminar.</p>
+        
+        <div id="cards-col-3" class="space-y-3 overflow-y-auto pr-1 flex-1 min-h-[150px]">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TABLE VIEW CONTAINER (HIDDEN BY DEFAULT) -->
+    <div id="table-view" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden hidden flex-1 flex flex-col">
+      <div class="overflow-x-auto flex-1">
+        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 dark:border-slate-800 text-slate-600 font-semibold uppercase text-[11px] tracking-wider">
+              <th class="py-3 px-4">Client / Contact</th>
+              <th class="py-3 px-4">Status Pipeline</th>
+              <th class="py-3 px-4">Employment & Income</th>
+              <th class="py-3 px-4">Pag-IBIG MID</th>
+              <th class="py-3 px-4">Requirements</th>
+              <th class="py-3 px-4">₱10K Move-In Outlay</th>
+              <th class="py-3 px-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="table-body" class="divide-y divide-slate-100 dark:divide-slate-800">
+            <!-- Injected via JS -->
+          </tbody>
+        </table>
+      </div>
+      <div id="table-empty" class="p-8 text-center text-slate-400 hidden">
+        <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+        <p class="text-sm">Walang nahanap na record na tugma sa iyong search o filter.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL: ABSORB WHITE FORM (IMAGE / OCR / AUTO-ENCODE) -->
+  <div id="absorbModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-4xl w-full max-h-[94vh] overflow-y-auto shadow-2xl border border-slate-100 dark:border-slate-800 text-slate-900 dark:text-slate-100 flex flex-col">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur z-20">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-red-600 flex items-center justify-center text-white shadow-md shadow-red-950/30">
+            <i data-lucide="scan" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-bold font-display text-slate-900 dark:text-white flex items-center gap-2">
+              Absorb White Form
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                AI / OCR Auto-Encoder
+              </span>
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              I-upload, i-drag & drop, o i-paste (<kbd class="px-1 py-0.2 bg-slate-100 dark:bg-slate-800 rounded font-mono text-[10px]">Ctrl+V</kbd>) ang White Form image para ma-encode at ma-save agad sa database.
+            </p>
+          </div>
+        </div>
+        <button onclick="closeAbsorbModal()" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-5 flex-1">
+        
+        <!-- Input Mode Switcher (Upload Image vs Paste Text) -->
+        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+          <div class="flex items-center gap-2">
+            <button id="absorb-tab-img" onclick="switchAbsorbTab('image')" class="px-3.5 py-1.5 text-xs font-bold rounded-lg bg-red-700 text-white shadow-sm flex items-center gap-1.5 transition">
+              <i data-lucide="image" class="w-3.5 h-3.5"></i>
+              <span>Upload / Paste Image (OCR)</span>
+            </button>
+            <button id="absorb-tab-txt" onclick="switchAbsorbTab('text')" class="px-3.5 py-1.5 text-xs font-medium rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 flex items-center gap-1.5 transition">
+              <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+              <span>Paste Summary Text</span>
+            </button>
+          </div>
+          <span class="text-[11px] text-slate-400 hidden sm:inline">Supports Digital & Hand-filled paper photos</span>
+        </div>
+
+        <!-- IMAGE DROPZONE AREA -->
+        <div id="absorbImageSection" class="space-y-4">
+          <div id="dropzoneContainer" onclick="document.getElementById('absorbFileInput').click()" 
+            class="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-red-500 dark:hover:border-red-500 rounded-2xl p-6 text-center cursor-pointer bg-slate-50/60 dark:bg-slate-800/40 hover:bg-red-50/30 transition group relative overflow-hidden">
+            
+            <input type="file" id="absorbFileInput" onchange="handleAbsorbFileSelect(event)" accept="image/*" class="hidden">
+            
+            <div class="flex flex-col items-center justify-center space-y-2">
+              <div class="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-rose-400 flex items-center justify-center group-hover:scale-110 transition shadow-sm">
+                <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <p class="text-sm font-bold text-slate-800 dark:text-slate-200">
+                  I-drop ang White Form image dito, o i-click para mag-browse
+                </p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  PNG, JPG, JPEG, JFIF, o WEBP • Hand-written o Digitally Signed
+                </p>
+              </div>
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-300 text-[11px] font-medium mt-1">
+                <i data-lucide="clipboard" class="w-3 h-3 text-amber-500"></i>
+                <span>Pro-Tip: Pwede ring mag-press ng <kbd class="px-1 py-0.5 bg-white dark:bg-slate-900 rounded border border-amber-300 dark:border-amber-800 font-mono text-[10px]">Ctrl + V</kbd> para ma-paste ang image mula sa Messenger!</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scanning / Processing Indicator Bar -->
+          <div id="ocrProcessingBar" class="p-4 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/70 dark:bg-amber-950/30 space-y-2 hidden">
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
+                <span id="ocrStatusText" class="font-bold text-amber-900 dark:text-amber-300">Scanning White Form image...</span>
+              </div>
+              <span id="ocrProgressPct" class="font-mono font-bold text-amber-700 dark:text-amber-400 text-xs">0%</span>
+            </div>
+            <div class="w-full h-2 bg-amber-200 dark:bg-amber-900/80 rounded-full overflow-hidden">
+              <div id="ocrProgressBar" class="h-full bg-gradient-to-r from-amber-500 to-red-600 transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TEXT SUMMARY PASTE SECTION (HIDDEN BY DEFAULT) -->
+        <div id="absorbTextSection" class="space-y-3 hidden">
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">
+            I-paste ang Summary Text o White Form Details mula sa Messenger:
+          </label>
+          <textarea id="absorbTextInput" rows="6" oninput="handleAbsorbTextChange()" 
+            placeholder="I-paste rito ang buong text mula sa Messenger o White Form Assistant (hal. SURNAME: CABONCE, MID: 1213-1560-7357, INCOME: 20000)..." 
+            class="w-full p-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl font-mono text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-red-600"></textarea>
+        </div>
+
+        <!-- EXTRACTED PREVIEW & CONFIRMATION SECTION -->
+        <div id="extractedResultContainer" class="space-y-4 pt-2 border-t border-slate-100 dark:border-slate-800 hidden">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+              <span>Na-extract na Impormasyon (Review & Verify)</span>
+            </h4>
+            <span id="extractedConfidenceBadge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+              Ready to Save
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+            <!-- Left: Image Preview & Original Form Inspection -->
+            <div class="md:col-span-4 space-y-2.5">
+              <div class="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-900 group shadow-sm max-h-[360px] flex items-center justify-center">
+                <img id="absorbedImgPreview" src="" alt="White Form Preview" class="w-full h-auto object-contain max-h-[350px]">
+                <div id="scanLineEffect" class="scan-line hidden"></div>
+                <button type="button" onclick="openAbsorbedImageFull()" class="absolute bottom-2 right-2 px-2 py-1 text-[10px] font-semibold bg-slate-900/80 hover:bg-slate-900 text-white rounded-lg flex items-center gap-1 opacity-90 transition backdrop-blur shadow">
+                  <i data-lucide="maximize-2" class="w-3 h-3"></i> Full Image
+                </button>
+              </div>
+              
+              <!-- Quick Pre-Qualification Result Box -->
+              <div id="extractedPreQualBox" class="p-3 rounded-xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/70 dark:bg-emerald-950/40 text-xs text-emerald-900 dark:text-emerald-200">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- Right: Editable Structured Fields Form -->
+            <div class="md:col-span-8 space-y-3 bg-slate-50/70 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">Full Name <span class="text-rose-500">*</span></label>
+                  <input type="text" id="extName" class="w-full px-3 py-2 text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-red-600">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">Mobile / Phone <span class="text-rose-500">*</span></label>
+                  <input type="text" id="extPhone" class="w-full px-3 py-2 text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-red-600">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">Pag-IBIG MID (12 Digits)</label>
+                  <input type="text" id="extMid" maxlength="14" oninput="formatMID(this)" class="w-full px-3 py-2 text-xs font-mono font-bold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-red-600">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">Monthly Gross Income (₱)</label>
+                  <input type="number" id="extIncome" oninput="evaluateExtractedCeiling()" class="w-full px-3 py-2 text-xs font-bold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-red-600">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">Employment Track</label>
+                  <select id="extTrack" onchange="evaluateExtractedCeiling()" class="w-full px-3 py-2 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-800 dark:text-slate-200 font-medium">
+                    <option value="Locally Employed">Locally Employed (Private / Gov't)</option>
+                    <option value="Overseas Filipino Worker (OFW)">OFW (Exempt from ceiling)</option>
+                    <option value="Freelancer / Virtual Assistant">Freelancer / Virtual Assistant</option>
+                    <option value="Self-Employed / Business Owner">Self-Employed / Business Owner</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">Civil Status</label>
+                  <select id="extCivilStatus" class="w-full px-3 py-2 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-800 dark:text-slate-200 font-medium">
+                    <option value="Single">Single</option>
+                    <option value="Married">Married</option>
+                    <option value="Widowed">Widowed</option>
+                    <option value="Legally Separated">Legally Separated</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">Employer / Business Name</label>
+                  <input type="text" id="extEmployer" class="w-full px-3 py-2 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
+                  <input type="email" id="extEmail" class="w-full px-3 py-2 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">Present Home Address</label>
+                <input type="text" id="extAddress" class="w-full px-3 py-2 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100">
+              </div>
+
+              <!-- Auto-Checked Document Policy -->
+              <div class="p-2.5 rounded-lg bg-red-50/60 dark:bg-red-950/40 border border-red-200/80 dark:border-red-900/60 text-[11px] flex items-center justify-between text-slate-700 dark:text-slate-300">
+                <span class="flex items-center gap-1.5 font-semibold text-red-950 dark:text-rose-200">
+                  <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+                  Auto-assigned: (1) Pre-Qualified • Signed White Form & Pag-IBIG MID Verified
+                </span>
+                <span class="text-[10px] text-slate-500 font-bold">100% Policy Compliant</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer Actions -->
+      <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 bg-slate-50/50 dark:bg-slate-900/50">
+        <button type="button" onclick="closeAbsorbModal()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition">
+          Cancel
+        </button>
+
+        <div class="flex items-center gap-2">
+          <button type="button" id="btnOpenExtFullEditor" onclick="openExtractedInFullEditor()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-600 transition hidden">
+            <i data-lucide="edit-3" class="w-3.5 h-3.5 inline mr-1"></i> Open in Full Editor
+          </button>
+          <button type="button" id="btnSaveAbsorbedClient" onclick="saveAbsorbedClient()" class="px-5 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-red-700 to-rose-600 hover:from-red-600 hover:to-rose-500 text-white shadow-md shadow-red-950/30 transition transform active:scale-95 flex items-center gap-1.5 disabled:opacity-50" disabled>
+            <i data-lucide="database" class="w-3.5 h-3.5"></i>
+            <span>Auto-Save to Database</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: VIEW WHITE FORM IMAGE -->
+  <div id="viewImageModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col">
+      <div class="px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-900 text-white">
+        <div>
+          <h3 id="viewImageModalTitle" class="text-sm sm:text-base font-bold font-display">White Form Document</h3>
+          <p id="viewImageModalSub" class="text-xs text-slate-400">Attached Beneficiary Image</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <a id="btnDownloadWhiteFormImg" href="#" download="WhiteForm.jpg" class="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition" title="Download Image">
+            <i data-lucide="download" class="w-4 h-4"></i>
+          </a>
+          <button onclick="closeViewImageModal()" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+      <div class="p-4 overflow-auto flex-1 flex items-center justify-center bg-slate-950/90 min-h-[300px]">
+        <img id="fullWhiteFormImg" src="" alt="White Form Full View" class="max-w-full max-h-[80vh] object-contain rounded-lg shadow-lg">
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT CLIENT -->
+  <div id="clientModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-100 dark:border-slate-800 text-slate-900 dark:text-slate-100 flex flex-col">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur z-10">
+        <div>
+          <h3 id="modalTitle" class="text-base sm:text-lg font-bold font-display text-slate-900 dark:text-white">Add New Buyer / Lead</h3>
+          <p class="text-xs text-slate-500">Deca Homes Urdaneta Expanded 4PH Pipeline</p>
+        </div>
+        <button onclick="closeModal()" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <form id="clientForm" onsubmit="saveClient(event)" class="p-6 space-y-5 flex-1">
+        <input type="hidden" id="clientId">
+
+        <!-- Status Pipeline Selector (THE CORE REQUIREMENT) -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+            Status Pipeline <span class="text-rose-500">*</span>
+          </label>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <label class="flex items-center gap-2 p-2.5 rounded-lg border border-amber-300 bg-amber-50/70 cursor-pointer hover:bg-amber-100/50 transition">
+              <input type="radio" name="modalStatus" value="1" class="text-amber-600 focus:ring-amber-500" checked>
+              <div class="text-xs font-bold text-amber-900 leading-tight">
+                (1) Pre-Qualified
+                <span class="block text-[10px] font-normal text-amber-700">Pumasa sa income & Pag-IBIG</span>
+              </div>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 rounded-lg border border-blue-300 bg-blue-50/70 cursor-pointer hover:bg-blue-100/50 transition">
+              <input type="radio" name="modalStatus" value="2" class="text-blue-600 focus:ring-blue-500">
+              <div class="text-xs font-bold text-blue-900 leading-tight">
+                (2) Complying Docs
+                <span class="block text-[10px] font-normal text-blue-700">Kinukumpleto ang papeles</span>
+              </div>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 rounded-lg border border-rose-300 bg-rose-50/70 cursor-pointer hover:bg-rose-100/50 transition">
+              <input type="radio" name="modalStatus" value="3" class="text-red-700 focus:ring-red-600">
+              <div class="text-xs font-bold text-rose-950 leading-tight">
+                (3) Submitted to DECA
+                <span class="block text-[10px] font-normal text-rose-700">Naipasa na kay AM / 8990</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Personal & Contact Info -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-red-50/50 p-3 rounded-xl border border-red-200">
+          <div>
+            <label class="block text-xs font-bold text-red-950 mb-1">Sales Consultant (Attributed SC)</label>
+            <input type="text" id="modalConsultant" value="John Edcee Cañizares (0919 368 2062)" 
+              class="w-full px-3 py-1.5 text-xs bg-white border border-red-300 rounded-lg focus:ring-2 focus:ring-red-600 font-semibold text-slate-800">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-red-950 mb-1">Agency Manager / Realty</label>
+            <input type="text" id="modalManager" value="Rowena Comilang (North Forbes Realty / Deca Gold)" 
+              class="w-full px-3 py-1.5 text-xs bg-white border border-red-300 rounded-lg focus:ring-2 focus:ring-red-600 font-semibold text-slate-800">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name <span class="text-rose-500">*</span></label>
+            <input type="text" id="modalName" required placeholder="e.g. Juan dela Cruz" 
+              class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Mobile / Phone Number <span class="text-rose-500">*</span></label>
+            <input type="text" id="modalPhone" required placeholder="0919 123 4567" 
+              class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Facebook / Messenger Link</label>
+            <input type="text" id="modalMessenger" placeholder="e.g. https://m.me/juandelacruz" 
+              class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Pag-IBIG MID Number (12 Digits)</label>
+            <input type="text" id="modalPagibigMid" maxlength="14" oninput="formatMID(this)" placeholder="1212-3456-7890" 
+              class="w-full px-3 py-2 text-sm font-mono bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+
+        <!-- Civil Status & Track -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Civil Status</label>
+            <select id="modalCivilStatus" class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <option value="Single">Single</option>
+              <option value="Married">Married</option>
+              <option value="Widowed">Widowed</option>
+              <option value="Legally Separated">Legally Separated</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Employment Category (Track)</label>
+            <select id="modalTrack" onchange="checkIncomeCeiling()" class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <option value="Locally Employed">Track I: Locally Employed (Private / Gov't)</option>
+              <option value="Overseas Filipino Worker (OFW)">Track III: OFW (Land / Sea Based - Exempt)</option>
+              <option value="Freelancer / Virtual Assistant">Track II: Freelancer / Virtual Assistant</option>
+              <option value="Self-Employed / Business Owner">Track IV: Self-Employed / Business Owner</option>
+              <option value="Commission-Based">Track V: Commission-Based</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Income & Ceiling Verification -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Employer / Business / Source</label>
+            <input type="text" id="modalEmployer" placeholder="Company or Business Name" 
+              class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Monthly Gross Income (₱)</label>
+            <input type="number" id="modalIncome" oninput="checkIncomeCeiling()" placeholder="e.g. 25000" 
+              class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <div id="ceilingAlert" class="mt-1 text-[11px] font-medium text-slate-500">
+              *Pangasinan 8th Decile Ceiling: ₱34,685.83 (OFWs exempt).
+            </div>
+          </div>
+        </div>
+
+        <!-- Outlay & Unit Preference -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+          <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">₱10,000 Total Move-In Cash Outlay Tracker</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">₱5,000 Reservation Fee</label>
+              <select id="modalReservation" class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg">
+                <option value="Pending Reservation (₱5,000)">Pending Reservation (₱5,000)</option>
+                <option value="Reserved (₱5,000 Paid)">Reserved (₱5,000 Paid)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">₱5,000 Advance Downpayment (2 Mos)</label>
+              <select id="modalAdvanceDp" class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg">
+                <option value="Not Started (₱5,000 - 2 mos)">Not Started (₱5,000)</option>
+                <option value="Month 1 Paid (₱2,500)">Month 1 Paid (₱2,500)</option>
+                <option value="Fully Paid (₱5,000)">Fully Paid (₱5,000)</option>
+              </select>
+            </div>
+          </div>
+          <div class="mt-2">
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Target Phase / Block & Lot</label>
+            <input type="text" id="modalPhase" placeholder="e.g. Phase 1 - Block 8 Lot 12 (42 sqm regular)" 
+              class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg">
+          </div>
+        </div>
+
+        <!-- Requirement Checklist -->
+        <div class="border border-slate-200 rounded-xl p-3.5 bg-white">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Document Checklist</h4>
+            <span class="text-[11px] text-slate-400">Mark as completed</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700">
+            <label class="flex items-center gap-2 cursor-pointer hover:text-slate-900">
+              <input type="checkbox" id="chk-govId" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>Valid Gov't ID (with 3 specimen signs)</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer hover:text-slate-900">
+              <input type="checkbox" id="chk-proofOfIncome" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>Proof of Income (COEC / Payslips / Contract)</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer hover:text-slate-900">
+              <input type="checkbox" id="chk-psaBirthOrMarriage" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>PSA Birth / Marriage Certificate</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer hover:text-slate-900">
+              <input type="checkbox" id="chk-idPictures" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>6 pcs 1x1 ID Pictures</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer hover:text-slate-900">
+              <input type="checkbox" id="chk-tinVerification" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>BIR TIN Verification (ORUS printout)</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer hover:text-slate-900">
+              <input type="checkbox" id="chk-pagibigContribution" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>Pag-IBIG 12-Month Contribution / MDF</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer hover:text-slate-900">
+              <input type="checkbox" id="chk-signedWhiteForm" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>Signed White Form (Beneficiary Slip)</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer hover:text-slate-900">
+              <input type="checkbox" id="chk-siteViewing" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span>Site Inspection / Viewing Completed</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer hover:text-slate-900 col-span-1 sm:col-span-2 bg-rose-50/70 p-1.5 rounded-lg border border-rose-200">
+              <input type="checkbox" id="chk-officeSeminar" class="rounded text-red-700 focus:ring-red-600">
+              <span class="font-semibold text-rose-950">Office Orientation Seminar Completed (DECA San Vicente East)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Notes & Next Action</label>
+          <textarea id="modalNotes" rows="2" placeholder="e.g. Awaiting COEC; scheduled for viewing this Saturday..." 
+            class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:outline-none"></textarea>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+          <button type="button" id="btnDeleteClient" onclick="deleteClient()" class="text-xs font-semibold text-rose-600 hover:text-rose-700 hidden">
+            Delete Record
+          </button>
+          <div class="flex items-center gap-2 ml-auto">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+              Cancel
+            </button>
+            <button type="submit" class="px-5 py-2 text-xs font-bold rounded-lg bg-red-700 hover:bg-red-600 text-white shadow-md shadow-red-900/30 transition">
+              Save Client Record
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: FOLLOW-UP MESSENGER TEMPLATE SCRIPT -->
+  <div id="followUpModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex items-center justify-between border-b pb-3 border-slate-100">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 font-display">Messenger Follow-Up Script</h3>
+          <p id="scriptClientName" class="text-xs text-rose-700 font-semibold"></p>
+        </div>
+        <button onclick="document.getElementById('followUpModal').classList.add('hidden')" class="w-7 h-7 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="relative">
+        <textarea id="scriptContent" rows="8" readonly class="w-full p-3 text-xs bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 focus:outline-none"></textarea>
+      </div>
+
+      <div class="flex items-center justify-between pt-2">
+        <span id="copyToast" class="text-xs text-red-700 font-semibold opacity-0 transition-opacity">Copied to clipboard!</span>
+        <div class="flex gap-2">
+          <button onclick="copyScriptText()" class="px-4 py-2 text-xs font-bold bg-red-700 hover:bg-red-600 text-white rounded-lg flex items-center gap-1.5 shadow-sm">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>Copy Message</span>
+          </button>
+          <a id="scriptMessengerLink" href="#" target="_blank" class="px-4 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-lg flex items-center gap-1.5 shadow-sm">
+            <i data-lucide="send" class="w-3.5 h-3.5"></i>
+            <span>Open Messenger</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: GOOGLE SHEET SYNC -->
+  <div id="googleSheetModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-100 p-6 space-y-5">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b pb-3.5 border-slate-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-rose-100 text-red-700 flex items-center justify-center shadow-sm">
+            <i data-lucide="sheet" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900 font-display flex items-center gap-2">
+              Google Sheets Live Sync
+            </h3>
+            <p class="text-xs text-slate-500">
+              Account: <span class="font-semibold text-red-700">jceecanzares@gmail.com</span>
+            </p>
+          </div>
+        </div>
+        <button onclick="closeGoogleSheetModal()" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Online / Offline Banner -->
+      <div id="netStatusBanner" class="p-3 rounded-xl border flex items-center justify-between text-xs">
+        <!-- Dynamically updated via JS -->
+      </div>
+
+      <!-- Live Sync Status Comparison Card -->
+      <div id="syncDiffCard" class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-xs space-y-1.5">
+        <div class="flex items-center justify-between font-bold text-slate-800 dark:text-slate-200">
+          <span class="flex items-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-red-600"></i>
+            Database Sync Status:
+          </span>
+          <span id="syncDiffBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+            Checking...
+          </span>
+        </div>
+        <p id="syncDiffText" class="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
+          Inaalam ang estado ng database at Google Sheet...
+        </p>
+        <div class="text-[10px] text-slate-500 dark:text-slate-400 pt-1.5 border-t border-slate-200 dark:border-slate-700 flex flex-wrap justify-between gap-1">
+          <span>Huling Database Update: <strong id="lastDbUpdateLabel" class="text-slate-700 dark:text-slate-200 font-semibold">Ngayon</strong></span>
+          <span>Huling Google Sync: <strong id="lastSyncLabel" class="text-slate-700 dark:text-slate-200 font-semibold">Hindi pa</strong></span>
+        </div>
+      </div>
+
+      <!-- Quick Action Cards -->
+      <div class="space-y-3">
+        <!-- Direct Sync / Update Section -->
+        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-red-600"></i>
+              Live Cloud Sync
+            </h4>
+            <span id="syncStatusBadge" class="text-[11px] font-semibold text-slate-500">Not Synced</span>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            I-sync ang lahat ng active buyers direkta sa Google Sheet ng iyong account. Kapag may internet, ia-update nito ang spreadsheet. Kapag offline, naka-save ito sa laptop mo.
+          </p>
+
+          <div class="space-y-1.5">
+            <label class="block text-[11px] font-semibold text-slate-600">Google Apps Script Webhook URL (Pre-configured & Connected ✅)</label>
+            <input type="text" id="gsheetWebhookUrl" value="https://script.google.com/macros/s/AKfycbyREJJW92yeC7yg5J_qZhAoW-9ZANRVT5kRgvm9qB3-g2a-Ii_aQuT57DclGP7d4G2J/exec" placeholder="https://script.google.com/macros/s/.../exec" 
+              class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:outline-none font-mono text-slate-700">
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 pt-1">
+            <button onclick="syncToGoogleSheet()" id="btnSyncNow" class="px-4 py-2 text-xs font-bold bg-red-700 hover:bg-red-600 text-white rounded-lg flex items-center gap-1.5 shadow-sm transition" title="Upload local clients to Google Sheet">
+              <i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i>
+              <span>Upload / Sync to Google</span>
+            </button>
+            <button onclick="pullFromGoogleSheet()" id="btnPullNow" class="px-4 py-2 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-lg flex items-center gap-1.5 shadow-sm transition" title="Download latest clients from Google Sheet">
+              <i data-lucide="cloud-download" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>Pull / Restore from Google</span>
+            </button>
+            <a id="btnOpenGoogleSheet" href="#" target="_blank" class="px-4 py-2 text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg flex items-center gap-1.5 shadow-sm transition hidden">
+              <i data-lucide="external-link" class="w-3.5 h-3.5 text-red-700"></i>
+              <span>Open in Google Drive</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 1-Click Instant Fallback: Open in sheets.new -->
+        <div class="p-4 rounded-xl border border-red-200 bg-red-50/50 space-y-2">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold text-red-950 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i>
+              Instant 1-Click Create (sheets.new)
+            </h4>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-red-900 border border-rose-200">Zero Setup</span>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Gagawa agad ng bagong Google Sheet sa loob ng iyong <span class="font-semibold text-slate-800">jceecanzares@gmail.com</span>. Awtomatikong kokopyahin ang formatted data, kailangan mo na lang pindutin ang <kbd class="px-1.5 py-0.5 bg-white border rounded text-[10px] font-mono shadow-sm">Ctrl + V</kbd> (Paste)!
+          </p>
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <button onclick="copyAndOpenSheetsNew()" class="px-4 py-2 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-lg flex items-center gap-1.5 shadow-sm transition">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>Copy Data & Open sheets.new in Browser</span>
+            </button>
+            <button onclick="markAsManuallySynced()" class="text-[11px] font-semibold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 underline flex items-center gap-1" title="Mark database as synced after manual paste">
+              <i data-lucide="check" class="w-3.5 h-3.5"></i>
+              <span>Na-paste ko na (Mark as Synced)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- One-Time Webhook Setup Accordion -->
+      <details class="text-xs text-slate-600 border border-slate-200 rounded-xl p-3 bg-slate-50/50">
+        <summary class="font-bold text-slate-800 cursor-pointer flex items-center justify-between select-none">
+          <span>📖 Paano i-setup ang Live Auto-Sync Webhook (1 minuto lamang):</span>
+          <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400"></i>
+        </summary>
+        <div class="mt-3 space-y-2 text-slate-600 pl-1 border-t border-slate-200 pt-2.5">
+          <ol class="list-decimal list-inside space-y-1.5 leading-relaxed">
+            <li>Buksan ang <a href="https://sheets.new" target="_blank" class="text-emerald-700 underline font-semibold">sheets.new</a> sa iyong browser gamit ang <code class="bg-slate-200 px-1 rounded">jceecanzares@gmail.com</code>.</li>
+            <li>Pangalanan ang sheet: <strong class="text-slate-800">"Deca Homes Urdaneta - Buyer Database"</strong>.</li>
+            <li>Pumunta sa menu: <strong>Extensions</strong> ➔ <strong>Apps Script</strong>.</li>
+            <li>I-delete ang laman at i-paste ang code sa ibaba, tapos i-click ang <strong>Save (Diskette icon)</strong>.</li>
+            <li>Pindutin ang <strong>Deploy</strong> (asul na button sa itaas) ➔ <strong>New deployment</strong> ➔ piliin ang <strong>Web app</strong>.</li>
+            <li>I-set: <em>Execute as: <strong>Me (jceecanzares@gmail.com)</strong></em> at <em>Who has access: <strong>Anyone</strong></em>.</li>
+            <li>I-click ang <strong>Deploy</strong>, kopyahin ang <strong>Web app URL</strong>, at i-paste ito sa kahon sa itaas!</li>
+          </ol>
+
+          <div class="mt-2.5">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[11px] font-bold text-slate-700">Apps Script Code to Copy:</span>
+              <button onclick="copyAppsScriptCode()" class="text-[10px] font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1">
+                <i data-lucide="copy" class="w-3 h-3"></i>
+                <span id="copyCodeText">Copy Script</span>
+              </button>
+            </div>
+            <textarea id="appsScriptTemplate" rows="10" readonly class="w-full p-2.5 bg-slate-900 text-emerald-400 font-mono text-[11px] rounded-lg focus:outline-none">// 1. RUN THIS ONCE TO CREATE BOTH TABS (Tab 1 Red for JC, Tab 2 Green for Rowena)
+function setupAgencyTabs() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // Tab 1: SC - JC Cañizares (Elegant Deca Crimson Red)
+  var tab1 = ss.getSheetByName("SC - JC Cañizares") || ss.getActiveSheet();
+  tab1.setName("SC - JC Cañizares");
+  tab1.setTabColor("#991B1B"); // Elegant Deca Red
+  
+  // Tab 2: AM - Rowena Comilang (Forest Green)
+  var tab2 = ss.getSheetByName("AM - Rowena Comilang");
+  if (!tab2) { tab2 = ss.insertSheet("AM - Rowena Comilang"); }
+  tab2.setTabColor("#146337"); // Forest Green
+  
+  var headers = [
+    "ID", "Full Name", "Sales Consultant", "Agency Manager", "Phone", "Email", 
+    "Status", "Track", "Employer / Business", "Monthly Income (PHP)", 
+    "Pag-IBIG MID", "Civil Status", "Reservation (P5k)", "Advance DP (P5k)", 
+    "Checklist Progress", "Notes", "Last Updated"
+  ];
+  
+  [tab1, tab2].forEach(function(sh, idx) {
+    if (sh.getLastRow() === 0) { sh.appendRow(headers); }
+    var hRange = sh.getRange(1, 1, 1, headers.length);
+    // Tab 1: Elegant Deca Red (#991B1B), Tab 2: Forest Green (#146337)
+    var headerColor = (idx === 0) ? "#991B1B" : "#146337";
+    hRange.setBackground(headerColor).setFontColor("#FFFFFF").setFontWeight("bold").setFontSize(11);
+    sh.setRowHeight(1, 42);
+    sh.setFrozenRows(1);
+    for (var c = 1; c <= headers.length; c++) {
+      sh.autoResizeColumn(c);
+      var w = sh.getColumnWidth(c);
+      sh.setColumnWidth(c, Math.max(w + 24, 100));
+    }
+    sh.setColumnWidth(3, 200); // Sales Consultant width
+    sh.setColumnWidth(4, 200); // Agency Manager width
+    sh.setColumnWidth(16, 260); // Notes width
+  });
+}
+
+// 2. MASTER VAULT ANTI-THEFT SYNC (Red Deca Theme)
+function doPost(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("SC - JC Cañizares") || ss.getActiveSheet();
+  var payload = JSON.parse(e.postData.contents);
+  var incoming = payload.clients || [];
+  
+  var headers = [
+    "ID", "Full Name", "Sales Consultant", "Agency Manager", "Phone", "Email", 
+    "Status", "Track", "Employer / Business", "Monthly Income (PHP)", 
+    "Pag-IBIG MID", "Civil Status", "Reservation (P5k)", "Advance DP (P5k)", 
+    "Checklist Progress", "Notes", "Last Updated"
+  ];
+  
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(headers);
+    sheet.getRange(1, 1, 1, headers.length).setBackground("#991B1B").setFontColor("#FFFFFF").setFontWeight("bold");
+    sheet.setFrozenRows(1);
+  }
+  
+  var lastRow = sheet.getLastRow();
+  var existingIds = [];
+  if (lastRow > 1) {
+    existingIds = sheet.getRange(2, 1, lastRow - 1, 1).getValues().map(function(r) { return r[0].toString(); });
+  }
+  
+  // Overwrite/Restore from Laptop Master Vault (Anti-Tamper Protection)
+  incoming.forEach(function(c) {
+    var reqs = c.requirements || {};
+    var done = Object.values(reqs).filter(Boolean).length;
+    var rowData = [
+      c.id, c.name, c.salesConsultant || "John Edcee Cañizares (0919 368 2062)", c.agencyManager || "Rowena Comilang (North Forbes Realty)",
+      c.phone, c.email || "", c.status, c.track,
+      c.employer || "", c.monthlyIncome || 0, c.pagibigMid || "",
+      c.civilStatus || "", c.reservationStatus || "", c.advanceDpStatus || "",
+      done + "/9", c.notes || "", c.lastUpdated || ""
+    ];
+    
+    var existingIndex = existingIds.indexOf(c.id);
+    if (existingIndex !== -1) {
+      sheet.getRange(existingIndex + 2, 1, 1, rowData.length).setValues([rowData]);
+    } else {
+      sheet.appendRow(rowData);
+      existingIds.push(c.id);
+    }
+  });
+  
+  sheet.autoResizeColumns(1, headers.length);
+  return ContentService.createTextOutput(JSON.stringify({
+    status: "success", updatedCount: incoming.length, url: ss.getUrl()
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+// 3. 2-WAY SYNC: PULL CLOUD DATA TO MOBILE OR LAPTOP (doGet)
+function doGet(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("SC - JC Cañizares") || ss.getActiveSheet();
+  var lastRow = sheet.getLastRow();
+  if (lastRow <= 1) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "success", clients: [] }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  var data = sheet.getRange(2, 1, lastRow - 1, 17).getValues();
+  var clients = data.map(function(r) {
+    var status = (r[6] || "").toString();
+    var statusCode = 1;
+    if (status.indexOf("2") !== -1 || status.toLowerCase().indexOf("complying") !== -1) statusCode = 2;
+    else if (status.indexOf("3") !== -1 || status.toLowerCase().indexOf("submitted") !== -1) statusCode = 3;
+    
+    return {
+      id: r[0].toString(),
+      name: r[1].toString(),
+      salesConsultant: r[2].toString(),
+      agencyManager: r[3].toString(),
+      phone: r[4].toString(),
+      email: r[5].toString(),
+      status: r[6].toString(),
+      statusCode: statusCode,
+      track: r[7].toString(),
+      employer: r[8].toString(),
+      monthlyIncome: Number(r[9]) || 0,
+      pagibigMid: r[10].toString(),
+      civilStatus: r[11].toString(),
+      reservationStatus: r[12].toString(),
+      advanceDpStatus: r[13].toString(),
+      preferredPhase: "Deca Homes Urdaneta - 2-Storey Townhouse (40 sqm)",
+      requirements: {
+        signedWhiteForm: true,
+        pagibigContribution: !!r[10]
+      },
+      notes: r[15].toString(),
+      lastUpdated: r[16].toString()
+    };
+  });
+  return ContentService.createTextOutput(JSON.stringify({ status: "success", clients: clients }))
+    .setMimeType(ContentService.MimeType.JSON);
+}</textarea>
+          </div>
+        </div>
+      </details>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+        <span id="gsheetToast" class="text-xs text-emerald-600 font-semibold opacity-0 transition-opacity">Saved!</span>
+        <button onclick="closeGoogleSheetModal()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING SYNC & NOTIFICATION TOAST -->
+  <div id="appToast" class="fixed bottom-5 right-5 z-50 max-w-md bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-slate-700 transform transition-all duration-300 translate-y-20 opacity-0 pointer-events-none flex items-start gap-3">
+    <div id="toastIconContainer" class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+      <i id="toastIcon" data-lucide="bell" class="w-4 h-4"></i>
+    </div>
+    <div class="flex-1 space-y-1">
+      <h5 id="toastTitle" class="text-xs font-bold font-display text-white">Database Updated</h5>
+      <p id="toastMessage" class="text-[11px] text-slate-300 leading-relaxed"></p>
+      <div id="toastActionContainer" class="pt-1.5 flex items-center gap-2 hidden">
+        <button id="toastActionBtn" class="px-3 py-1 bg-red-700 hover:bg-red-600 text-white text-[10px] font-bold rounded-lg shadow-sm flex items-center gap-1">
+          <i data-lucide="cloud-upload" class="w-3 h-3"></i>
+          <span>Sync Now to Google Sheet</span>
+        </button>
+      </div>
+    </div>
+    <button onclick="hideToast()" class="text-slate-400 hover:text-white p-1">
+      <i data-lucide="x" class="w-3.5 h-3.5"></i>
+    </button>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div>
+        Deca Homes Urdaneta • Deca Gold Realty & Dev., Inc. / 8990 Holdings, Inc.
+      </div>
+      <div>
+        Consultant: <span class="text-slate-800 font-semibold">John Edcee Cañizares</span> (0919 368 2062) | AM: <span class="text-slate-800 font-semibold">Rowena Comilang</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    // Storage Key
+    const STORAGE_KEY = 'decahome_urdaneta_clients_v4';
+
+    // Initial Seed Data with Real Pre-Qualified Buyers (Nov 23, 2026)
+    const DEFAULT_DATA = [
+      {
+        "id": "DHU-2026-001",
+        "name": "Cyra Ines Cabonce",
+        "phone": "0950 160 1528",
+        "email": "caboncecyra@gmail.com",
+        "salesConsultant": "John Edcee Cañizares (0919 368 2062)",
+        "agencyManager": "Rowena Comilang (North Forbes Realty)",
+        "messenger": "https://m.me/",
+        "status": "Pre-qualified",
+        "statusCode": 1,
+        "track": "Locally Employed",
+        "employer": "Philippine National Bank (Talipapa Novaliches QC)",
+        "designation": "Sales and Service Associate (Regular)",
+        "monthlyIncome": 20000,
+        "pagibigMid": "1213-1560-7357",
+        "civilStatus": "Single",
+        "birthDate": "2002-09-15",
+        "address": "Disiplina Village, Bignay Valenzuela City, Metro Manila",
+        "preferredPhase": "Deca Homes Urdaneta - 2-Storey Townhouse (40 sqm)",
+        "reservationStatus": "Pending Reservation (₱5,000)",
+        "advanceDpStatus": "Not Started (₱5,000 - 2 mos)",
+        "requirements": {
+          "govId": false,
+          "proofOfIncome": false,
+          "psaBirthOrMarriage": false,
+          "idPictures": false,
+          "tinVerification": false,
+          "pagibigContribution": true,
+          "signedWhiteForm": true,
+          "siteViewing": false
+        },
+        "notes": "White Form generated & signed digitally (Nov 23, 2026). Income ₱20k within 4PH ceiling. Active Pag-IBIG MID verified.",
+        "dateCreated": "2026-11-23",
+        "lastUpdated": "2026-11-23"
+      },
+      {
+        "id": "DHU-2026-002",
+        "name": "John Lawrence Oliveros Aranton",
+        "phone": "0926 677 9391",
+        "email": "lawreeence07@gmail.com",
+        "salesConsultant": "John Edcee Cañizares (0919 368 2062)",
+        "agencyManager": "Rowena Comilang (North Forbes Realty)",
+        "messenger": "https://m.me/",
+        "status": "Pre-qualified",
+        "statusCode": 1,
+        "track": "Locally Employed",
+        "employer": "RCS 2 Supermarket (Aruego St., Poblacion Urdaneta City)",
+        "designation": "Service Retail Store (Regular)",
+        "monthlyIncome": 15600,
+        "pagibigMid": "1212-4815-8569",
+        "civilStatus": "Single",
+        "birthDate": "2000-11-07",
+        "address": "Poblacion, Urdaneta City",
+        "preferredPhase": "Deca Homes Urdaneta - 2-Storey Townhouse (40 sqm)",
+        "reservationStatus": "Pending Reservation (₱5,000)",
+        "advanceDpStatus": "Not Started (₱5,000 - 2 mos)",
+        "requirements": {
+          "govId": false,
+          "proofOfIncome": false,
+          "psaBirthOrMarriage": false,
+          "idPictures": false,
+          "tinVerification": false,
+          "pagibigContribution": true,
+          "signedWhiteForm": true,
+          "siteViewing": false
+        },
+        "notes": "Hand-filled White Form collected & signed (Nov 23, 2026). Income ₱15,600 qualifies under Pangasinan 8th decile ceiling (≤ ₱34,685.83). Contact details verified by JC.",
+        "dateCreated": "2026-11-23",
+        "lastUpdated": "2026-11-23"
+      },
+      {
+        "id": "DHU-2026-003",
+        "name": "Sanny Val Jaramilla Domagas",
+        "phone": "0916 649 1729",
+        "email": "sdomagas458@gmail.com",
+        "salesConsultant": "John Edcee Cañizares (0919 368 2062)",
+        "agencyManager": "Rowena Comilang (North Forbes Realty)",
+        "messenger": "https://m.me/",
+        "status": "Pre-qualified",
+        "statusCode": 1,
+        "track": "Locally Employed",
+        "employer": "Magic Appliance Corp. (Alexander St., Poblacion Urdaneta City)",
+        "designation": "CI Collector (Regular)",
+        "monthlyIncome": 18000,
+        "pagibigMid": "1211-3309-2394",
+        "civilStatus": "Single",
+        "birthDate": "1988-02-14",
+        "address": "Zone 2 Dilan, Urdaneta City, Pangasinan",
+        "preferredPhase": "Deca Homes Urdaneta - 2-Storey Townhouse (40 sqm)",
+        "reservationStatus": "Pending Reservation (₱5,000)",
+        "advanceDpStatus": "Not Started (₱5,000 - 2 mos)",
+        "requirements": {
+          "govId": false,
+          "proofOfIncome": false,
+          "psaBirthOrMarriage": false,
+          "idPictures": false,
+          "tinVerification": false,
+          "pagibigContribution": true,
+          "signedWhiteForm": true,
+          "siteViewing": false
+        },
+        "notes": "Hand-filled White Form collected & signed (Nov 23, 2026). Income ₱18,000 qualifies under Pangasinan 8th decile ceiling. Note: Phone written has 12 digits (091664917294) - verify if 09166491729.",
+        "dateCreated": "2026-11-23",
+        "lastUpdated": "2026-11-23"
+      }
+    ];
+
+    let clients = [];
+    let currentView = 'kanban';
+
+    // Init App
+    window.addEventListener('DOMContentLoaded', () => {
+      checkPinGate();
+      loadClients();
+      renderApp();
+      checkSyncStatus();
+      initAbsorbEngine();
+      lucide.createIcons();
+    });
+
+    window.addEventListener('focus', () => {
+      checkSyncStatus();
+    });
+
+    function loadClients() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          clients = JSON.parse(stored);
+        } catch(e) {
+          clients = DEFAULT_DATA;
+        }
+      } else {
+        clients = DEFAULT_DATA;
+        saveClientsToStorage(false);
+      }
+    }
+
+    function saveClientsToStorage(markAsUpdated = true) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(clients, null, 2));
+      if (markAsUpdated) {
+        localStorage.setItem('decahome_last_db_update', Date.now().toString());
+        checkSyncStatus();
+      }
+    }
+
+    function setViewMode(mode) {
+      currentView = mode;
+      const kanbanEl = document.getElementById('kanban-view');
+      const tableEl = document.getElementById('table-view');
+      const kanbanBtn = document.getElementById('view-kanban-btn');
+      const tableBtn = document.getElementById('view-table-btn');
+
+      if (mode === 'kanban') {
+        kanbanEl.classList.remove('hidden');
+        tableEl.classList.add('hidden');
+        kanbanBtn.className = "px-3 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 transition bg-white text-slate-900 shadow-sm";
+        tableBtn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition text-slate-600 hover:text-slate-900";
+      } else {
+        kanbanEl.classList.add('hidden');
+        tableEl.classList.remove('hidden');
+        tableBtn.className = "px-3 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 transition bg-white text-slate-900 shadow-sm";
+        kanbanBtn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition text-slate-600 hover:text-slate-900";
+      }
+      renderApp();
+    }
+
+    
+    /* ========================================================
+       DARK MODE ENGINE
+       ======================================================== */
+    function toggleDarkMode() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      updateThemeToggleUI();
+    }
+
+    function updateThemeToggleUI() {
+      const isDark = document.documentElement.classList.contains('dark');
+      const icon = document.getElementById('theme-toggle-icon');
+      const label = document.getElementById('theme-toggle-label');
+      if (icon) {
+        icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+        icon.className = isDark ? 'w-3.5 h-3.5 text-amber-400' : 'w-3.5 h-3.5 text-slate-300';
+      }
+      if (label) {
+        label.textContent = isDark ? 'Light' : 'Dark';
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function renderApp() {
+      const search = document.getElementById('searchInput').value.toLowerCase().trim();
+      const statusFilter = document.getElementById('statusFilter').value;
+      const trackFilter = document.getElementById('trackFilter').value;
+
+      // Filtered dataset
+      const filtered = clients.filter(c => {
+        const matchSearch = !search || 
+          c.name.toLowerCase().includes(search) || 
+          c.phone.includes(search) || 
+          (c.pagibigMid && c.pagibigMid.includes(search)) ||
+          (c.employer && c.employer.toLowerCase().includes(search));
+        
+        const matchStatus = statusFilter === 'ALL' || c.statusCode.toString() === statusFilter;
+        const matchTrack = trackFilter === 'ALL' || c.track === trackFilter;
+
+        return matchSearch && matchStatus && matchTrack;
+      });
+
+      // Update Top Stats
+      const totalCount = clients.length;
+      const count1 = clients.filter(c => c.statusCode === 1).length;
+      const count2 = clients.filter(c => c.statusCode === 2).length;
+      const count3 = clients.filter(c => c.statusCode === 3).length;
+
+      document.getElementById('stat-total').innerText = totalCount;
+      document.getElementById('stat-status-1').innerText = count1;
+      document.getElementById('stat-status-2').innerText = count2;
+      document.getElementById('stat-status-3').innerText = count3;
+
+      document.getElementById('badge-col-1').innerText = filtered.filter(c => c.statusCode === 1).length;
+      document.getElementById('badge-col-2').innerText = filtered.filter(c => c.statusCode === 2).length;
+      document.getElementById('badge-col-3').innerText = filtered.filter(c => c.statusCode === 3).length;
+
+      // Render Kanban
+      renderKanban(filtered);
+
+      // Render Table
+      renderTable(filtered);
+
+      lucide.createIcons();
+    }
+
+    function getReqScore(reqs) {
+      if (!reqs) return { count: 0, total: 9, pct: 0 };
+      const keys = ['govId', 'proofOfIncome', 'psaBirthOrMarriage', 'idPictures', 'tinVerification', 'pagibigContribution', 'signedWhiteForm', 'siteViewing', 'officeSeminar'];
+      let done = 0;
+      keys.forEach(k => { if(reqs[k]) done++; });
+      return { count: done, total: keys.length, pct: Math.round((done / keys.length) * 100) };
+    }
+
+    function renderKanban(list) {
+      const col1 = document.getElementById('cards-col-1');
+      const col2 = document.getElementById('cards-col-2');
+      const col3 = document.getElementById('cards-col-3');
+
+      col1.innerHTML = '';
+      col2.innerHTML = '';
+      col3.innerHTML = '';
+
+      const makeCard = (c) => {
+        const score = getReqScore(c.requirements);
+        const incomeFormatted = c.monthlyIncome ? '₱' + Number(c.monthlyIncome).toLocaleString() : 'N/A';
+        
+        return `
+          <div class="bg-white dark:bg-slate-800/90 rounded-xl p-3.5 border border-slate-200/90 dark:border-slate-700/80 shadow-sm hover:shadow-md transition relative group">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug hover:text-emerald-700 dark:hover:text-amber-400 cursor-pointer" onclick="openEditModal('${c.id}')">${c.name}</h4>
+                <div class="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+                  <i data-lucide="phone" class="w-3 h-3 text-slate-400"></i>
+                  <span>${c.phone}</span>
+                </div>
+              </div>
+              <button onclick="openEditModal('${c.id}')" class="text-slate-400 hover:text-slate-700 p-1 rounded hover:bg-slate-50" title="Edit Client">
+                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+
+            <!-- Track & Income -->
+            <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+              <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 font-medium">${c.track || 'Locally Employed'}</span>
+              <span class="font-bold text-slate-700 dark:text-slate-200">${incomeFormatted}/mo</span>
+            </div>
+
+            <!-- Requirement Progress Bar -->
+            <div class="mt-2.5">
+              <div class="flex items-center justify-between text-[10px] text-slate-500 mb-1">
+                <span>Docs Checklist</span>
+                <span class="font-bold text-slate-700">${score.count}/${score.total} (${score.pct}%)</span>
+              </div>
+              <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div class="h-full ${score.pct === 100 ? 'bg-emerald-500' : score.pct >= 50 ? 'bg-blue-500' : 'bg-amber-500'}" style="width: ${score.pct}%"></div>
+              </div>
+            </div>
+
+            <!-- Outlay & Unit -->
+            <div class="mt-2 text-[11px] text-slate-600 dark:text-slate-300 space-y-0.5">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400 text-[10px]">Reservation:</span>
+                <span class="font-semibold ${c.reservationStatus && c.reservationStatus.includes('Paid') ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}">${c.reservationStatus || 'Pending'}</span>
+              </div>
+              ${c.preferredPhase ? `<div class="truncate text-[10px] text-slate-400"><i data-lucide="map-pin" class="w-2.5 h-2.5 inline mr-0.5"></i> ${c.preferredPhase}</div>` : ''}
+              ${c.whiteFormImage ? `
+                <div class="pt-1.5 flex items-center justify-between">
+                  <button onclick="viewWhiteFormImage('${c.id}')" class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-rose-50 dark:bg-red-950/60 text-red-700 dark:text-rose-300 hover:bg-rose-100 border border-red-200 dark:border-red-900 flex items-center gap-1 shadow-xs transition">
+                    <i data-lucide="file-check" class="w-3 h-3 text-red-600"></i>
+                    <span>View Absorbed White Form</span>
+                  </button>
+                  <span class="text-[9px] text-emerald-600 dark:text-emerald-400 font-semibold">Attached</span>
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- Consultant Attribution -->
+            <div class="mt-2 pt-1.5 border-t border-slate-50 flex items-center justify-between text-[10px] text-slate-500">
+              <span class="text-slate-400">Consultant:</span>
+              <span class="font-bold text-slate-700 dark:text-slate-200">${(c.salesConsultant || 'John Edcee Cañizares').split('(')[0].trim()}</span>
+            </div>
+
+            <!-- Bottom Actions Bar -->
+            <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-1">
+              <!-- Status Shifter Buttons -->
+              <div class="flex items-center gap-1">
+                ${c.statusCode !== 1 ? `<button onclick="shiftStatus('${c.id}', 1)" class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200" title="Move to (1) Pre-Qualified">→ (1)</button>` : ''}
+                ${c.statusCode !== 2 ? `<button onclick="shiftStatus('${c.id}', 2)" class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200" title="Move to (2) Complying Docs">→ (2)</button>` : ''}
+                ${c.statusCode !== 3 ? `<button onclick="shiftStatus('${c.id}', 3)" class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200" title="Move to (3) Submitted to DECA">→ (3)</button>` : ''}
+              </div>
+
+              <!-- Quick Communication -->
+              <div class="flex items-center gap-1">
+                <button onclick="generateFollowUpScript('${c.id}')" class="p-1 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded transition" title="Generate Messenger Follow-up Message">
+                  <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+                </button>
+                ${c.messenger ? `<a href="${c.messenger}" target="_blank" class="p-1 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded transition" title="Open Messenger Chat"><i data-lucide="send" class="w-3.5 h-3.5"></i></a>` : ''}
+                <a href="tel:${c.phone.replace(/[^0-9]/g, '')}" class="p-1 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition" title="Call Client"><i data-lucide="phone-call" class="w-3.5 h-3.5"></i></a>
+              </div>
+            </div>
+          </div>
+        `;
+      };
+
+      list.forEach(c => {
+        if (c.statusCode === 1) col1.innerHTML += makeCard(c);
+        else if (c.statusCode === 2) col2.innerHTML += makeCard(c);
+        else if (c.statusCode === 3) col3.innerHTML += makeCard(c);
+      });
+
+      if (col1.innerHTML === '') col1.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-xl">Walang buyer sa (1) Pre-Qualified</div>`;
+      if (col2.innerHTML === '') col2.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-xl">Walang buyer sa (2) Complying Docs</div>`;
+      if (col3.innerHTML === '') col3.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-xl">Walang buyer sa (3) Submitted to DECA</div>`;
+    }
+
+    function renderTable(list) {
+      const tbody = document.getElementById('table-body');
+      const emptyEl = document.getElementById('table-empty');
+      tbody.innerHTML = '';
+
+      if (list.length === 0) {
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+      emptyEl.classList.add('hidden');
+
+      list.forEach(c => {
+        const score = getReqScore(c.requirements);
+        let statusBadge = '';
+        if (c.statusCode === 1) {
+          statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span>(1) Pre-Qualified</span>`;
+        } else if (c.statusCode === 2) {
+          statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200"><span class="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5"></span>(2) Complying Docs</span>`;
+        } else {
+          statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>(3) Submitted to DECA</span>`;
+        }
+
+        const income = c.monthlyIncome ? '₱' + Number(c.monthlyIncome).toLocaleString() : 'N/A';
+
+        const row = `
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition cursor-pointer" onclick="openEditModal('${c.id}')">
+            <td class="py-3 px-4">
+              <div class="font-bold text-slate-900 dark:text-slate-100">${c.name}</div>
+              <div class="text-[11px] text-slate-500">${c.phone}</div>
+            </td>
+            <td class="py-3 px-4">
+              ${statusBadge}
+            </td>
+            <td class="py-3 px-4">
+              <div class="font-semibold text-slate-800">${income} / mo</div>
+              <div class="text-[11px] text-slate-500 truncate max-w-[160px]">${c.employer || c.track}</div>
+            </td>
+            <td class="py-3 px-4 font-mono text-slate-700 text-xs">
+              ${c.pagibigMid || '<span class="text-slate-400">None</span>'}
+            </td>
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-2">
+                <div class="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div class="h-full ${score.pct === 100 ? 'bg-emerald-500' : 'bg-blue-500'}" style="width: ${score.pct}%"></div>
+                </div>
+                <span class="text-[11px] font-bold text-slate-700 dark:text-slate-300">${score.count}/${score.total}</span>
+              </div>
+              ${c.whiteFormImage ? `<button onclick="viewWhiteFormImage('${c.id}')" class="mt-1 text-[10px] font-bold text-red-700 dark:text-rose-400 hover:underline flex items-center gap-1"><i data-lucide="file-check" class="w-3 h-3 text-red-600"></i> View Form</button>` : ''}
+            </td>
+            <td class="py-3 px-4 text-xs">
+              <div class="font-semibold ${c.reservationStatus && c.reservationStatus.includes('Paid') ? 'text-emerald-700' : 'text-slate-600'}">${c.reservationStatus || 'Pending'}</div>
+              <div class="text-[10px] text-slate-400">${c.advanceDpStatus || '₱5K Advance Outlay'}</div>
+            </td>
+            <td class="py-3 px-4 text-right" onclick="event.stopPropagation()">
+              <div class="flex items-center justify-end gap-1.5">
+                <button onclick="generateFollowUpScript('${c.id}')" class="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded" title="Follow-up Script">
+                  <i data-lucide="message-square" class="w-4 h-4"></i>
+                </button>
+                <button onclick="openEditModal('${c.id}')" class="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded" title="Edit">
+                  <i data-lucide="edit-3" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+        tbody.innerHTML += row;
+      });
+    }
+
+    // Status Shifter
+    function shiftStatus(id, newStatusCode) {
+      const client = clients.find(c => c.id === id);
+      if (!client) return;
+      client.statusCode = newStatusCode;
+      if (newStatusCode === 1) client.status = 'Pre-qualified';
+      else if (newStatusCode === 2) client.status = 'Complying with requirements';
+      else if (newStatusCode === 3) client.status = 'Submitted docs to DECA';
+      client.lastUpdated = new Date().toISOString().split('T')[0];
+      saveClientsToStorage();
+      renderApp();
+    }
+
+    // Modal Operations
+    function openAddModal() {
+      document.getElementById('modalTitle').innerText = 'Add New Buyer / Lead';
+      document.getElementById('clientId').value = '';
+      document.getElementById('clientForm').reset();
+      document.getElementById('modalConsultant').value = 'John Edcee Cañizares (0919 368 2062)';
+      document.getElementById('modalManager').value = 'Rowena Comilang (North Forbes Realty / Deca Gold)';
+      document.querySelector('input[name="modalStatus"][value="1"]').checked = true;
+      document.getElementById('btnDeleteClient').classList.add('hidden');
+      document.getElementById('clientModal').classList.remove('hidden');
+      checkIncomeCeiling();
+    }
+
+    function openEditModal(id) {
+      const client = clients.find(c => c.id === id);
+      if (!client) return;
+
+      document.getElementById('modalTitle').innerText = 'Edit Buyer Record';
+      document.getElementById('clientId').value = client.id;
+      document.getElementById('modalConsultant').value = client.salesConsultant || 'John Edcee Cañizares (0919 368 2062)';
+      document.getElementById('modalManager').value = client.agencyManager || 'Rowena Comilang (North Forbes Realty / Deca Gold)';
+      document.getElementById('modalName').value = client.name || '';
+      document.getElementById('modalPhone').value = client.phone || '';
+      document.getElementById('modalMessenger').value = client.messenger || '';
+      document.getElementById('modalPagibigMid').value = client.pagibigMid || '';
+      document.getElementById('modalCivilStatus').value = client.civilStatus || 'Single';
+      document.getElementById('modalTrack').value = client.track || 'Locally Employed';
+      document.getElementById('modalEmployer').value = client.employer || '';
+      document.getElementById('modalIncome').value = client.monthlyIncome || '';
+      document.getElementById('modalReservation').value = client.reservationStatus || 'Pending Reservation (₱5,000)';
+      document.getElementById('modalAdvanceDp').value = client.advanceDpStatus || 'Not Started (₱5,000 - 2 mos)';
+      document.getElementById('modalPhase').value = client.preferredPhase || '';
+      document.getElementById('modalNotes').value = client.notes || '';
+
+      // Radios
+      const statusRadio = document.querySelector(`input[name="modalStatus"][value="${client.statusCode || 1}"]`);
+      if (statusRadio) statusRadio.checked = true;
+
+      // Checkboxes
+      const reqs = client.requirements || {};
+      document.getElementById('chk-govId').checked = !!reqs.govId;
+      document.getElementById('chk-proofOfIncome').checked = !!reqs.proofOfIncome;
+      document.getElementById('chk-psaBirthOrMarriage').checked = !!reqs.psaBirthOrMarriage;
+      document.getElementById('chk-idPictures').checked = !!reqs.idPictures;
+      document.getElementById('chk-tinVerification').checked = !!reqs.tinVerification;
+      document.getElementById('chk-pagibigContribution').checked = !!reqs.pagibigContribution;
+      document.getElementById('chk-signedWhiteForm').checked = !!reqs.signedWhiteForm;
+      document.getElementById('chk-siteViewing').checked = !!reqs.siteViewing;
+      document.getElementById('chk-officeSeminar').checked = !!reqs.officeSeminar;
+
+      document.getElementById('btnDeleteClient').classList.remove('hidden');
+      document.getElementById('clientModal').classList.remove('hidden');
+      checkIncomeCeiling();
+    }
+
+    function closeModal() {
+      document.getElementById('clientModal').classList.add('hidden');
+    }
+
+    function saveClient(e) {
+      e.preventDefault();
+      const id = document.getElementById('clientId').value;
+      const statusCode = parseInt(document.querySelector('input[name="modalStatus"]:checked').value);
+      let statusText = 'Pre-qualified';
+      if (statusCode === 2) statusText = 'Complying with requirements';
+      if (statusCode === 3) statusText = 'Submitted docs to DECA';
+
+      const clientData = {
+        salesConsultant: document.getElementById('modalConsultant').value.trim() || 'John Edcee Cañizares (0919 368 2062)',
+        agencyManager: document.getElementById('modalManager').value.trim() || 'Rowena Comilang (North Forbes Realty / Deca Gold)',
+        name: document.getElementById('modalName').value.trim(),
+        phone: document.getElementById('modalPhone').value.trim(),
+        messenger: document.getElementById('modalMessenger').value.trim(),
+        pagibigMid: document.getElementById('modalPagibigMid').value.trim(),
+        civilStatus: document.getElementById('modalCivilStatus').value,
+        track: document.getElementById('modalTrack').value,
+        employer: document.getElementById('modalEmployer').value.trim(),
+        monthlyIncome: parseFloat(document.getElementById('modalIncome').value) || 0,
+        status: statusText,
+        statusCode: statusCode,
+        reservationStatus: document.getElementById('modalReservation').value,
+        advanceDpStatus: document.getElementById('modalAdvanceDp').value,
+        preferredPhase: document.getElementById('modalPhase').value.trim(),
+        notes: document.getElementById('modalNotes').value.trim(),
+        requirements: {
+          govId: document.getElementById('chk-govId').checked,
+          proofOfIncome: document.getElementById('chk-proofOfIncome').checked,
+          psaBirthOrMarriage: document.getElementById('chk-psaBirthOrMarriage').checked,
+          idPictures: document.getElementById('chk-idPictures').checked,
+          tinVerification: document.getElementById('chk-tinVerification').checked,
+          pagibigContribution: document.getElementById('chk-pagibigContribution').checked,
+          signedWhiteForm: document.getElementById('chk-signedWhiteForm').checked,
+          siteViewing: document.getElementById('chk-siteViewing').checked,
+          officeSeminar: document.getElementById('chk-officeSeminar').checked,
+        },
+        lastUpdated: new Date().toISOString().split('T')[0]
+      };
+
+      if (id) {
+        // Update existing
+        const index = clients.findIndex(c => c.id === id);
+        if (index !== -1) {
+          clients[index] = { ...clients[index], ...clientData };
+        }
+      } else {
+        // Create new
+        const newId = 'DHU-' + new Date().getFullYear() + '-' + String(clients.length + 1).padStart(3, '0');
+        clients.unshift({
+          id: newId,
+          ...clientData,
+          dateCreated: new Date().toISOString().split('T')[0]
+        });
+      }
+
+      saveClientsToStorage(true);
+      closeModal();
+      renderApp();
+      showToast(
+        'Client Record Saved! ✅',
+        `Na-save ang record ni ${clientData.name}. Paalala: May unsynced changes na dapat i-sync sa Google Sheet!`,
+        true
+      );
+    }
+
+    function deleteClient() {
+      const id = document.getElementById('clientId').value;
+      if (!id) return;
+      if (confirm('Sigurado ka bang nais mong tanggalin ang buyer record na ito?')) {
+        clients = clients.filter(c => c.id !== id);
+        saveClientsToStorage(true);
+        closeModal();
+        renderApp();
+        showToast(
+          'Record Deleted 🗑️',
+          'Na-update ang database. Paalala: I-sync ang pagbabago sa Google Sheet.',
+          true
+        );
+      }
+    }
+
+    // Income ceiling check
+    function checkIncomeCeiling() {
+      const income = parseFloat(document.getElementById('modalIncome').value) || 0;
+      const track = document.getElementById('modalTrack').value;
+      const alertEl = document.getElementById('ceilingAlert');
+
+      if (track === 'Overseas Filipino Worker (OFW)') {
+        alertEl.innerHTML = `<span class="text-emerald-600 font-bold">✈️ OFW Track: EXEMPT from income ceilings! Qualified under 4PH.</span>`;
+        return;
+      }
+
+      if (income <= 0) {
+        alertEl.innerHTML = `<span class="text-slate-500">*Pangasinan 8th Decile Ceiling: ₱34,685.83 / month.</span>`;
+        return;
+      }
+
+      if (income <= 34685.83) {
+        alertEl.innerHTML = `<span class="text-emerald-600 font-bold">✅ Pasok sa 4PH Pangasinan Limit (₱${income.toLocaleString()} ≤ ₱34,685.83). Subsidized interest eligible!</span>`;
+      } else {
+        alertEl.innerHTML = `<span class="text-amber-600 font-bold">⚠️ Lampas sa 8th decile (₱${income.toLocaleString()} > ₱34,685.83). Kailangan ng regular Pag-IBIG track o co-borrower assessment.</span>`;
+      }
+    }
+
+    function formatMID(input) {
+      let val = input.value.replace(/[^0-9]/g, '');
+      if (val.length > 12) val = val.substring(0, 12);
+      let formatted = '';
+      if (val.length > 0) formatted += val.substring(0, 4);
+      if (val.length > 4) formatted += '-' + val.substring(4, 8);
+      if (val.length > 8) formatted += '-' + val.substring(8, 12);
+      input.value = formatted;
+    }
+
+    // Follow-up Generator (Tagalog/English Messenger template)
+    function generateFollowUpScript(id) {
+      const c = clients.find(client => client.id === id);
+      if (!c) return;
+
+      const firstName = c.name.split(' ')[0];
+      let script = '';
+
+      if (c.statusCode === 1) {
+        // Pre-qualified script
+        script = `Magandang araw po Ma'am/Sir ${firstName}! 😊 This is John Edcee Cañizares mula sa Deca Homes Urdaneta (North Forbes Realty / Deca Gold).\n\nGood news po! Base sa inyong assessment at Pag-IBIG details, PRE-QUALIFIED na po kayo para sa ating 2-Storey Townhouse sa Deca Homes Urdaneta sa ilalim ng Expanded 4PH Program! 🎉\n\n📌 Quick Summary ng Package:\n• Total Move-In Cash Out: ₱10,000 lamang (₱5k Reservation + ₱5k Advance DP)\n• Subsidized monthly Pag-IBIG amortization starting ~₱4,849/month\n• Zero balloon payment!\n\nKailan po kayo pinaka-available for site viewing sa Brgy. Nancayasan para makapili po tayo ng magandang block and lot? Message nyo lang po ako rito or call/text sa 0919 368 2062. Salamat po!`;
+      } else if (c.statusCode === 2) {
+        // Complying docs script
+        const missing = [];
+        const reqs = c.requirements || {};
+        if (!reqs.govId) missing.push("1 Primary Valid ID with 3 specimen signatures");
+        if (!reqs.proofOfIncome) missing.push("Proof of Income (COEC / 1-mo Payslip)");
+        if (!reqs.psaBirthOrMarriage) missing.push("PSA Birth Certificate (at Marriage Cert kung married)");
+        if (!reqs.idPictures) missing.push("6 pcs 1x1 ID pictures (white background)");
+        if (!reqs.tinVerification) missing.push("BIR TIN Verification (ORUS printout)");
+        if (!reqs.pagibigContribution) missing.push("Pag-IBIG 12-month Contribution Printout / MDF");
+        if (!reqs.signedWhiteForm) missing.push("Signed White Form / Beneficiary Slip");
+
+        const missingText = missing.length > 0 ? missing.map(m => `  • ${m}`).join('\n') : "  • Kumpletong set ng requirements";
+
+        script = `Kumusta po Ma'am/Sir ${firstName}! Follow up lang po ni John Edcee Cañizares (0919 368 2062) ng Deca Homes Urdaneta. 😊\n\nNire-review po natin ang inyong folder para maihanda na natin sa pagsusumite sa DECA Office. Heto na lang po ang hinihintay nating kulang:\n\n${missingText}\n\n📌 Paalala sa Pagpasa:\nKapag nakumpleto na po natin ito, sabay nating isusumite ang inyong complete hardcopy requirements sa ating DECA Office sa San Vicente East, Urdaneta City. Pagkapasa po ng inyong requirements, doon din po mismo magco-conduct ang office ng ating opisyal na Homebuyer Orientation Seminar para sa inyo bago ang final loan clearance!\n\nMessage niyo lang po ako rito kapag may hawak na po kayong copies para ma-assist ko po kayo agad. Maraming salamat po!`;
+      } else {
+        // Submitted docs to DECA script
+        script = `Magandang araw po Ma'am/Sir ${firstName}! Update lang po mula kay John Edcee Cañizares ng Deca Homes Urdaneta. 🏡\n\nOpisyal na po nating naisumite ang inyong complete documents sa DECA Office sa San Vicente East, Urdaneta City at na-topic/natapos na rin po ang official seminar ng office para sa inyo.\n\nNasa credit committee evaluation and Pag-IBIG takeout processing na po ang inyong account sa pangangasiwa ni AM Rowena Comilang at 8990 Holdings. Ite-text/tatawagan ko po kayo agad oras na lumabas ang feedback sa inyong unit allocation. Maraming salamat po sa tiwala! (Direct hotline: 0919 368 2062)`;
+      }
+
+      document.getElementById('scriptClientName').innerText = `${c.name} • Status: (${c.statusCode}) ${c.status}`;
+      document.getElementById('scriptContent').value = script;
+      
+      const mLink = document.getElementById('scriptMessengerLink');
+      if (c.messenger) {
+        mLink.href = c.messenger;
+        mLink.classList.remove('hidden');
+      } else {
+        mLink.href = 'https://m.me/DecaHomeUrda';
+        mLink.classList.remove('hidden');
+      }
+
+      document.getElementById('copyToast').style.opacity = '0';
+      document.getElementById('followUpModal').classList.remove('hidden');
+    }
+
+    function copyScriptText() {
+      const text = document.getElementById('scriptContent').value;
+      navigator.clipboard.writeText(text).then(() => {
+        const toast = document.getElementById('copyToast');
+        toast.style.opacity = '1';
+        setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+      });
+    }
+
+    // Export to CSV
+    function exportToCSV() {
+      if (clients.length === 0) {
+        alert('Walang data na mai-export.');
+        return;
+      }
+      const headers = ['ID', 'Full Name', 'Sales Consultant', 'Agency Manager', 'Phone', 'Messenger', 'Status', 'Status Code', 'Track', 'Employer', 'Monthly Income', 'Pag-IBIG MID', 'Civil Status', 'Preferred Phase', 'Reservation Status', 'Advance DP', 'Checklist Score', 'Notes', 'Date Created', 'Last Updated'];
+      
+      const rows = clients.map(c => {
+        const score = getReqScore(c.requirements);
+        return [
+          c.id,
+          `"${(c.name || '').replace(/"/g, '""')}"`,
+          `"${(c.salesConsultant || 'John Edcee Cañizares (0919 368 2062)').replace(/"/g, '""')}"`,
+          `"${(c.agencyManager || 'Rowena Comilang (North Forbes Realty)').replace(/"/g, '""')}"`,
+          `"${c.phone || ''}"`,
+          `"${c.messenger || ''}"`,
+          `"${c.status || ''}"`,
+          c.statusCode || 1,
+          `"${c.track || ''}"`,
+          `"${(c.employer || '').replace(/"/g, '""')}"`,
+          c.monthlyIncome || 0,
+          `"${c.pagibigMid || ''}"`,
+          `"${c.civilStatus || ''}"`,
+          `"${(c.preferredPhase || '').replace(/"/g, '""')}"`,
+          `"${c.reservationStatus || ''}"`,
+          `"${c.advanceDpStatus || ''}"`,
+          `"${score.count}/${score.total}"`,
+          `"${(c.notes || '').replace(/"/g, '""')}"`,
+          c.dateCreated || '',
+          c.lastUpdated || ''
+        ].join(',');
+      });
+
+      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `decahome_pipeline_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // JSON Backup & Import
+    function exportJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(clients, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `decahome_database_backup_${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (Array.isArray(parsed)) {
+            clients = parsed;
+            saveClientsToStorage();
+            renderApp();
+            alert(`Matagumpay na na-import ang ${clients.length} buyer records!`);
+          } else {
+            alert('Maling format ng JSON file. Dapat ay array ng mga kliyente.');
+          }
+        } catch(err) {
+          alert('Hindi mabasa ang JSON file: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // ==========================================
+    // GOOGLE SHEETS LIVE SYNC & CLOUD LOGIC
+    // ==========================================
+    const GSHEET_WEBHOOK_KEY = 'decahome_gsheet_webhook_url';
+    const GSHEET_URL_KEY = 'decahome_gsheet_sheet_url';
+    const DEFAULT_GSHEET_URL = 'https://docs.google.com/spreadsheets/d/1D0IGql0nmFyWAhoTFuMxQQBvOXi0X7AtP4F_sBSJJeY/edit';
+    const DEFAULT_GSHEET_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyREJJW92yeC7yg5J_qZhAoW-9ZANRVT5kRgvm9qB3-g2a-Ii_aQuT57DclGP7d4G2J/exec';
+
+    window.addEventListener('online', updateNetworkStatusBanner);
+    window.addEventListener('offline', updateNetworkStatusBanner);
+
+    function updateNetworkStatusBanner() {
+      const banner = document.getElementById('netStatusBanner');
+      if (!banner) return;
+      if (navigator.onLine) {
+        banner.className = "p-3 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-800 flex items-center justify-between text-xs";
+        banner.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="font-bold">Online:</span>
+            <span>Handang mag-connect at mag-sync sa Google Drive (jceecanzares@gmail.com).</span>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-200/80 text-emerald-900">Connected</span>
+        `;
+      } else {
+        banner.className = "p-3 rounded-xl border border-amber-200 bg-amber-50 text-amber-800 flex items-center justify-between text-xs";
+        banner.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+            <span class="font-bold">Offline:</span>
+            <span>Walang internet. Naka-save ang lahat ng buyer records sa laptop mo.</span>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-200/80 text-amber-900">Local Only</span>
+        `;
+      }
+    }
+
+    function openGoogleSheetModal() {
+      updateNetworkStatusBanner();
+      const savedWebhook = localStorage.getItem(GSHEET_WEBHOOK_KEY) || DEFAULT_GSHEET_WEBHOOK_URL;
+      const savedSheetUrl = localStorage.getItem(GSHEET_URL_KEY) || DEFAULT_GSHEET_URL;
+
+      document.getElementById('gsheetWebhookUrl').value = savedWebhook;
+      const openBtn = document.getElementById('btnOpenGoogleSheet');
+
+      if (savedSheetUrl) {
+        openBtn.href = savedSheetUrl;
+        openBtn.classList.remove('hidden');
+      } else {
+        openBtn.classList.add('hidden');
+      }
+
+      document.getElementById('googleSheetModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeGoogleSheetModal() {
+      // Auto-save webhook input
+      const val = document.getElementById('gsheetWebhookUrl').value.trim() || DEFAULT_GSHEET_WEBHOOK_URL;
+      localStorage.setItem(GSHEET_WEBHOOK_KEY, val);
+      document.getElementById('googleSheetModal').classList.add('hidden');
+    }
+
+    // 1-Click Sync to Google Sheet via Webhook
+    async function syncToGoogleSheet() {
+      const webhookUrl = document.getElementById('gsheetWebhookUrl').value.trim() || localStorage.getItem(GSHEET_WEBHOOK_KEY) || DEFAULT_GSHEET_WEBHOOK_URL;
+      if (!webhookUrl) {
+        openGoogleSheetModal();
+        alert('Pakilagay muna ang inyong Google Apps Script Webhook URL sa Google Sheet Sync window.');
+        return;
+      }
+      localStorage.setItem(GSHEET_WEBHOOK_KEY, webhookUrl);
+
+      if (!navigator.onLine) {
+        alert('Kasalukuyan kang OFFLINE. Naka-save ang data sa iyong laptop. Mag-connect sa Wi-Fi o data bago mag-sync sa Google Sheets.');
+        return;
+      }
+
+      const syncBtn = document.getElementById('btnSyncNow');
+      const badge = document.getElementById('syncStatusBadge');
+      const originalHtml = syncBtn ? syncBtn.innerHTML : '';
+
+      if (syncBtn) {
+        syncBtn.disabled = true;
+        syncBtn.innerHTML = `<span>Syncing to Google...</span>`;
+      }
+      if (badge) {
+        badge.innerText = 'Connecting...';
+        badge.className = 'text-[11px] font-semibold text-amber-600';
+      }
+
+      try {
+        const payload = {
+          timestamp: new Date().toISOString(),
+          account: 'jceecanzares@gmail.com',
+          clients: clients
+        };
+
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          mode: 'no-cors', // Standard Google Apps Script cross-origin submission
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        // Record successful sync
+        localStorage.setItem('decahome_last_sync_time', Date.now().toString());
+        checkSyncStatus();
+
+        if (badge) {
+          badge.innerText = 'Synced Successfully!';
+          badge.className = 'text-[11px] font-bold text-emerald-600';
+        }
+
+        const openBtn = document.getElementById('btnOpenGoogleSheet');
+        if (openBtn) {
+          openBtn.classList.remove('hidden');
+          if (!openBtn.href || openBtn.href.endsWith('#')) {
+            openBtn.href = 'https://docs.google.com/spreadsheets/u/0/';
+          }
+        }
+
+        showToast('Google Sheet Synced! 🎉', 'Matagumpay na na-sync ang lahat ng buyer records sa iyong Google Sheet sa jceecanzares@gmail.com!', false);
+      } catch (err) {
+        if (badge) {
+          badge.innerText = 'Sync Failed';
+          badge.className = 'text-[11px] font-bold text-rose-600';
+        }
+        alert('Hindi makakonekta sa Google Sheets: ' + err.message + '\n\nKung offline ka, i-export muna bilang CSV.');
+      } finally {
+        if (syncBtn) {
+          syncBtn.disabled = false;
+          syncBtn.innerHTML = originalHtml;
+        }
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+
+    function markAsManuallySynced() {
+      localStorage.setItem('decahome_last_sync_time', Date.now().toString());
+      checkSyncStatus();
+      showToast('Marked as Synced ✅', 'Naitala na ang database bilang naka-sync sa iyong Google Sheet.', false);
+    }
+
+    // 2-Way Sync: Pull / Restore from Google Sheet via doGet
+    async function pullFromGoogleSheet() {
+      const webhookUrl = document.getElementById('gsheetWebhookUrl').value.trim() || localStorage.getItem(GSHEET_WEBHOOK_KEY) || DEFAULT_GSHEET_WEBHOOK_URL;
+      if (!webhookUrl) {
+        openGoogleSheetModal();
+        alert('Pakilagay muna ang inyong Google Apps Script Webhook URL.');
+        return;
+      }
+      localStorage.setItem(GSHEET_WEBHOOK_KEY, webhookUrl);
+
+      if (!navigator.onLine) {
+        alert('Kasalukuyan kang OFFLINE. Mag-connect sa Wi-Fi o mobile data bago kumuha ng data mula sa Google Sheet.');
+        return;
+      }
+
+      const pullBtn = document.getElementById('btnPullNow');
+      const badge = document.getElementById('syncStatusBadge');
+      const originalHtml = pullBtn ? pullBtn.innerHTML : '';
+
+      if (pullBtn) {
+        pullBtn.disabled = true;
+        pullBtn.innerHTML = `<span>Pulling data...</span>`;
+      }
+      if (badge) {
+        badge.innerText = 'Fetching cloud data...';
+        badge.className = 'text-[11px] font-semibold text-amber-600';
+      }
+
+      try {
+        const response = await fetch(webhookUrl);
+        const res = await response.json();
+
+        if (res && res.status === 'success' && Array.isArray(res.clients)) {
+          if (res.clients.length === 0) {
+            alert('Walang nakitang buyer records sa Google Sheet.');
+            return;
+          }
+
+          // Anti-duplicate Smart Merge: match by ID
+          const existingMap = new Map();
+          clients.forEach(c => existingMap.set(c.id, c));
+
+          let newCount = 0;
+          let updatedCount = 0;
+
+          res.clients.forEach(cloudClient => {
+            const existing = existingMap.get(cloudClient.id);
+            if (existing) {
+              existingMap.set(cloudClient.id, {
+                ...cloudClient,
+                whiteFormImage: existing.whiteFormImage || cloudClient.whiteFormImage || null,
+                requirements: {
+                  ...cloudClient.requirements,
+                  ...(existing.requirements || {})
+                }
+              });
+              updatedCount++;
+            } else {
+              existingMap.set(cloudClient.id, cloudClient);
+              newCount++;
+            }
+          });
+
+          clients = Array.from(existingMap.values());
+          clients.sort((a, b) => (b.id || '').localeCompare(a.id || ''));
+
+          const nowTs = Date.now().toString();
+          localStorage.setItem('decahome_last_sync_time', nowTs);
+          localStorage.setItem('decahome_last_db_update', nowTs);
+          saveClientsToStorage(false);
+          renderApp();
+          checkSyncStatus();
+
+          if (badge) {
+            badge.innerText = 'Cloud Data Loaded!';
+            badge.className = 'text-[11px] font-bold text-emerald-600';
+          }
+
+          showToast(
+            'Cloud Data Restored! 📥',
+            `Matagumpay na na-load ang ${res.clients.length} buyer records mula sa iyong Google Sheet (${newCount} bago, ${updatedCount} updated)!`,
+            false
+          );
+        } else {
+          throw new Error('Invalid format returned by webhook.');
+        }
+      } catch (err) {
+        if (badge) {
+          badge.innerText = 'Pull Failed';
+          badge.className = 'text-[11px] font-bold text-rose-600';
+        }
+        alert('Hindi makuha ang data mula sa Google Sheet: ' + err.message + '\n\nSiguraduhing na-update mo ang Google Apps Script gamit ang bagong code na may doGet.');
+      } finally {
+        if (pullBtn) {
+          pullBtn.disabled = false;
+          pullBtn.innerHTML = originalHtml;
+        }
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+
+    /* ========================================================
+       SECURITY MASTER PIN GATE (CONSULTANT LOCK)
+       ======================================================== */
+    const DEFAULT_PIN = '2062';
+    let currentPinInput = '';
+
+    function checkPinGate() {
+      const pinEnabled = localStorage.getItem('decahome_pin_enabled') !== 'false';
+      const isUnlocked = sessionStorage.getItem('decahome_unlocked') === 'true';
+      const overlay = document.getElementById('pinLockOverlay');
+      if (!overlay) return;
+
+      if (pinEnabled && !isUnlocked) {
+        overlay.classList.remove('hidden');
+        currentPinInput = '';
+        updatePinDots();
+      } else {
+        overlay.classList.add('hidden');
+      }
+    }
+
+    function pressPin(digit) {
+      if (currentPinInput.length < 4) {
+        currentPinInput += digit;
+        updatePinDots();
+        if (currentPinInput.length === 4) {
+          setTimeout(verifyPin, 100);
+        }
+      }
+    }
+
+    function clearPin() {
+      currentPinInput = '';
+      updatePinDots();
+      const err = document.getElementById('pinErrorMsg');
+      if (err) err.classList.add('hidden');
+    }
+
+    function backspacePin() {
+      if (currentPinInput.length > 0) {
+        currentPinInput = currentPinInput.slice(0, -1);
+        updatePinDots();
+      }
+    }
+
+    function updatePinDots() {
+      for (let i = 1; i <= 4; i++) {
+        const dot = document.getElementById('pinDot' + i);
+        if (dot) {
+          if (i <= currentPinInput.length) {
+            dot.className = 'w-4 h-4 rounded-full bg-red-600 border-2 border-red-500 scale-110 shadow-sm transition-all';
+          } else {
+            dot.className = 'w-4 h-4 rounded-full border-2 border-slate-600 transition-all';
+          }
+        }
+      }
+    }
+
+    function verifyPin() {
+      const masterPin = localStorage.getItem('decahome_master_pin') || DEFAULT_PIN;
+      if (currentPinInput === masterPin) {
+        sessionStorage.setItem('decahome_unlocked', 'true');
+        const overlay = document.getElementById('pinLockOverlay');
+        overlay.classList.add('opacity-0');
+        setTimeout(() => {
+          overlay.classList.add('hidden');
+          overlay.classList.remove('opacity-0');
+        }, 300);
+      } else {
+        const err = document.getElementById('pinErrorMsg');
+        if (err) err.classList.remove('hidden');
+        currentPinInput = '';
+        setTimeout(() => {
+          updatePinDots();
+        }, 300);
+      }
+    }
+
+    function lockScreenNow() {
+      sessionStorage.removeItem('decahome_unlocked');
+      checkPinGate();
+    }
+
+    /* ========================================================
+       SYNC STATUS ENGINE & LIVE NOTIFICATIONS
+       ======================================================== */
+    function checkSyncStatus() {
+      const lastUpdate = parseInt(localStorage.getItem('decahome_last_db_update') || '0');
+      const lastSync = parseInt(localStorage.getItem('decahome_last_sync_time') || '0');
+      const isUnsynced = lastUpdate > lastSync;
+
+      const banner = document.getElementById('syncAlertBanner');
+      const headerDot = document.getElementById('headerSyncDot');
+      const headerBadge = document.getElementById('headerSyncBadge');
+      const modalBadge = document.getElementById('syncStatusBadge');
+      const diffBadge = document.getElementById('syncDiffBadge');
+      const diffText = document.getElementById('syncDiffText');
+      const lastDbLabel = document.getElementById('lastDbUpdateLabel');
+      const lastSyncLabel = document.getElementById('lastSyncLabel');
+
+      const formatTime = (ts) => {
+        if (!ts) return 'Hindi pa na-sync';
+        const d = new Date(ts);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      };
+
+      if (lastDbLabel) lastDbLabel.textContent = lastUpdate ? formatTime(lastUpdate) : 'Ngayon';
+      if (lastSyncLabel) lastSyncLabel.textContent = formatTime(lastSync);
+
+      if (isUnsynced) {
+        if (banner) banner.classList.remove('hidden');
+        if (headerDot) {
+          headerDot.className = 'w-2 h-2 rounded-full bg-rose-500 inline-block animate-ping';
+          headerDot.classList.remove('hidden');
+        }
+        if (headerBadge) {
+          headerBadge.textContent = 'Unsynced';
+          headerBadge.className = 'text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-600 text-white shadow-sm';
+          headerBadge.classList.remove('hidden');
+        }
+        if (modalBadge) {
+          modalBadge.textContent = 'Unsynced (Changes Pending)';
+          modalBadge.className = 'text-[11px] font-bold text-amber-600 dark:text-amber-400';
+        }
+        if (diffBadge) {
+          diffBadge.textContent = 'Pending Sync';
+          diffBadge.className = 'px-2 py-0.5 rounded-full text-[10px] bg-amber-100 text-amber-800 border border-amber-200 font-bold';
+        }
+        if (diffText) {
+          diffText.textContent = 'May mga binagong record sa laptop na hindi pa naka-upload sa Google Sheet.';
+        }
+      } else {
+        if (banner) banner.classList.add('hidden');
+        if (headerDot) headerDot.classList.add('hidden');
+        if (headerBadge) {
+          headerBadge.textContent = 'Synced';
+          headerBadge.className = 'text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-700 text-emerald-100';
+          headerBadge.classList.remove('hidden');
+        }
+        if (modalBadge) {
+          modalBadge.textContent = 'Synced with Google';
+          modalBadge.className = 'text-[11px] font-bold text-emerald-600 dark:text-emerald-400';
+        }
+        if (diffBadge) {
+          diffBadge.textContent = 'Up to Date';
+          diffBadge.className = 'px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold';
+        }
+        if (diffText) {
+          diffText.textContent = 'Lahat ng buyer records sa iyong laptop ay tugma sa Google Sheet.';
+        }
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function showToast(title, message, isSyncReminder = false) {
+      const toast = document.getElementById('appToast');
+      if (!toast) return;
+
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastMessage').textContent = message;
+
+      const actionContainer = document.getElementById('toastActionContainer');
+      const actionBtn = document.getElementById('toastActionBtn');
+      const icon = document.getElementById('toastIcon');
+
+      if (isSyncReminder) {
+        actionContainer.classList.remove('hidden');
+        actionBtn.onclick = () => {
+          hideToast();
+          syncToGoogleSheet();
+        };
+        icon.setAttribute('data-lucide', 'cloud-upload');
+      } else {
+        actionContainer.classList.add('hidden');
+        icon.setAttribute('data-lucide', 'check-circle-2');
+      }
+      if (window.lucide) lucide.createIcons();
+
+      toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      if (window.toastTimeout) clearTimeout(window.toastTimeout);
+      window.toastTimeout = setTimeout(() => {
+        hideToast();
+      }, 7000);
+    }
+
+    function hideToast() {
+      const toast = document.getElementById('appToast');
+      if (!toast) return;
+      toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+      toast.classList.remove('translate-y-0', 'opacity-100');
+    }
+
+    /* ========================================================
+       WHITE FORM INGESTION, OCR & AUTO-ENCODING ENGINE
+       ======================================================== */
+    let currentAbsorbedImageThumbnail = null;
+    let tesseractWorker = null;
+
+    function initAbsorbEngine() {
+      // Global Drag and Drop
+      window.addEventListener('dragover', (e) => {
+        e.preventDefault();
+      });
+
+      window.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          const file = e.dataTransfer.files[0];
+          if (file.type && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              openAbsorbModal();
+              switchAbsorbTab('image');
+              processWhiteFormImage(event.target.result);
+            };
+            reader.readAsDataURL(file);
+          }
+        }
+      });
+
+      // Global Clipboard Paste Listener
+      window.addEventListener('paste', (e) => {
+        const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+        const isTyping = (activeTag === 'input' || activeTag === 'textarea') && 
+                         document.activeElement.id !== 'absorbTextInput';
+
+        const items = (e.clipboardData || (e.originalEvent && e.originalEvent.clipboardData))?.items;
+        if (!items) return;
+
+        let imageFound = false;
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.indexOf('image') !== -1) {
+            const blob = items[i].getAsFile();
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              openAbsorbModal();
+              switchAbsorbTab('image');
+              processWhiteFormImage(event.target.result);
+            };
+            reader.readAsDataURL(blob);
+            imageFound = true;
+            e.preventDefault();
+            break;
+          }
+        }
+
+        if (!imageFound && !isTyping) {
+          const pastedText = e.clipboardData.getData('text');
+          if (pastedText && (/WHITE\s*FORM/i.test(pastedText) || /BENEFICIARY/i.test(pastedText) || /PAG-?IBIG\s*MID/i.test(pastedText) || /SURNAME/i.test(pastedText))) {
+            openAbsorbModal();
+            switchAbsorbTab('text');
+            document.getElementById('absorbTextInput').value = pastedText;
+            handleAbsorbTextChange();
+            e.preventDefault();
+          }
+        }
+      });
+    }
+
+    function openAbsorbModal() {
+      document.getElementById('absorbModal').classList.remove('hidden');
+      switchAbsorbTab('image');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeAbsorbModal() {
+      document.getElementById('absorbModal').classList.add('hidden');
+      const scanLine = document.getElementById('scanLineEffect');
+      if (scanLine) scanLine.classList.add('hidden');
+      const procBar = document.getElementById('ocrProcessingBar');
+      if (procBar) procBar.classList.add('hidden');
+    }
+
+    function switchAbsorbTab(tab) {
+      const imgSection = document.getElementById('absorbImageSection');
+      const txtSection = document.getElementById('absorbTextSection');
+      const tabImg = document.getElementById('absorb-tab-img');
+      const tabTxt = document.getElementById('absorb-tab-txt');
+
+      if (tab === 'image') {
+        imgSection.classList.remove('hidden');
+        txtSection.classList.add('hidden');
+        tabImg.className = "px-3.5 py-1.5 text-xs font-bold rounded-lg bg-red-700 text-white shadow-sm flex items-center gap-1.5 transition";
+        tabTxt.className = "px-3.5 py-1.5 text-xs font-medium rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 flex items-center gap-1.5 transition";
+      } else {
+        imgSection.classList.add('hidden');
+        txtSection.classList.remove('hidden');
+        tabTxt.className = "px-3.5 py-1.5 text-xs font-bold rounded-lg bg-red-700 text-white shadow-sm flex items-center gap-1.5 transition";
+        tabImg.className = "px-3.5 py-1.5 text-xs font-medium rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 flex items-center gap-1.5 transition";
+        document.getElementById('absorbTextInput').focus();
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function handleAbsorbFileSelect(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        processWhiteFormImage(event.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleAbsorbTextChange() {
+      const text = document.getElementById('absorbTextInput').value;
+      if (!text.trim()) return;
+      const parsed = parseWhiteFormData(text);
+      populateExtractedFields(parsed);
+      document.getElementById('extractedResultContainer').classList.remove('hidden');
+    }
+
+    function compressImageForStorage(imgOrCanvas, maxWidth = 900, quality = 0.65) {
+      const c = document.createElement('canvas');
+      let w = imgOrCanvas.width || imgOrCanvas.naturalWidth || 800;
+      let h = imgOrCanvas.height || imgOrCanvas.naturalHeight || 1000;
+      if (w > maxWidth) {
+        h = Math.round((h * maxWidth) / w);
+        w = maxWidth;
+      }
+      c.width = w;
+      c.height = h;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(imgOrCanvas, 0, 0, w, h);
+      return c.toDataURL('image/jpeg', quality);
+    }
+
+    async function getTesseractWorker(onProgress) {
+      if (tesseractWorker) return tesseractWorker;
+      if (typeof Tesseract === 'undefined') {
+        throw new Error('Tesseract OCR library is not available.');
+      }
+      const worker = await Tesseract.createWorker('eng', 1, {
+        logger: m => {
+          if (onProgress && m.status === 'recognizing text') {
+            const pct = Math.round((m.progress || 0) * 100);
+            onProgress(pct, `Recognizing text (${pct}%)...`);
+          } else if (onProgress && m.status) {
+            onProgress(null, `OCR: ${m.status}...`);
+          }
+        }
+      });
+      tesseractWorker = worker;
+      return worker;
+    }
+
+    async function processWhiteFormImage(imageSrc) {
+      const previewImg = document.getElementById('absorbedImgPreview');
+      previewImg.src = imageSrc;
+      document.getElementById('extractedResultContainer').classList.remove('hidden');
+      document.getElementById('ocrProcessingBar').classList.remove('hidden');
+      document.getElementById('scanLineEffect').classList.remove('hidden');
+      document.getElementById('ocrStatusText').textContent = 'Enhancing image contrast for ink recognition...';
+      document.getElementById('ocrProgressBar').style.width = '15%';
+      document.getElementById('ocrProgressPct').textContent = '15%';
+
+      // Preprocess on canvas
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      await new Promise((resolve) => {
+        img.onload = resolve;
+        img.onerror = resolve;
+        img.src = imageSrc;
+      });
+
+      const canvas = document.createElement('canvas');
+      let w = img.naturalWidth || img.width || 800;
+      let h = img.naturalHeight || img.height || 1000;
+      const maxDim = 2000;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) {
+          h = Math.round((h * maxDim) / w);
+          w = maxDim;
+        } else {
+          w = Math.round((w * maxDim) / h);
+          h = maxDim;
+        }
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+
+      // Contrast enhancement
+      try {
+        const imgData = ctx.getImageData(0, 0, w, h);
+        const d = imgData.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const gray = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+          const factor = 1.35;
+          const val = Math.min(255, Math.max(0, factor * (gray - 128) + 128));
+          d[i] = val;
+          d[i+1] = val;
+          d[i+2] = val;
+        }
+        ctx.putImageData(imgData, 0, 0);
+      } catch (e) {
+        console.warn('Canvas pixel processing skipped:', e);
+      }
+
+      currentAbsorbedImageThumbnail = compressImageForStorage(canvas);
+
+      let rawOcrText = '';
+      try {
+        document.getElementById('ocrStatusText').textContent = 'Loading OCR Engine...';
+        document.getElementById('ocrProgressBar').style.width = '30%';
+        document.getElementById('ocrProgressPct').textContent = '30%';
+
+        const worker = await getTesseractWorker((pct, status) => {
+          if (pct !== null) {
+            const scaled = 30 + Math.round(pct * 0.65);
+            document.getElementById('ocrProgressBar').style.width = scaled + '%';
+            document.getElementById('ocrProgressPct').textContent = scaled + '%';
+            document.getElementById('ocrStatusText').textContent = status;
+          } else if (status) {
+            document.getElementById('ocrStatusText').textContent = status;
+          }
+        });
+
+        const ret = await worker.recognize(canvas);
+        rawOcrText = ret.data.text || '';
+        document.getElementById('ocrProgressBar').style.width = '100%';
+        document.getElementById('ocrProgressPct').textContent = '100%';
+        document.getElementById('ocrStatusText').textContent = 'Parsing White Form details & calculating eligibility...';
+      } catch (ocrErr) {
+        console.warn('OCR error or offline:', ocrErr);
+        document.getElementById('ocrStatusText').innerHTML = `
+          <span class="text-amber-800 dark:text-amber-200">
+            OCR scan ready. Maaari mong i-verify o i-type ang mga detalye base sa preview image sa kaliwa.
+          </span>
+        `;
+      }
+
+      const parsed = parseWhiteFormData(rawOcrText);
+      populateExtractedFields(parsed);
+
+      document.getElementById('scanLineEffect').classList.add('hidden');
+      setTimeout(() => {
+        document.getElementById('ocrProcessingBar').classList.add('hidden');
+      }, 1000);
+    }
+
+    function parseWhiteFormData(text) {
+      const res = {
+        surname: '',
+        firstName: '',
+        middleName: '',
+        fullName: '',
+        phone: '',
+        email: '',
+        pagibigMid: '',
+        civilStatus: 'Single',
+        track: 'Locally Employed',
+        employer: '',
+        designation: '',
+        income: 0,
+        address: '',
+        birthDate: ''
+      };
+      
+      if (!text) return res;
+      const clean = text.replace(/\r/g, '');
+      
+      // 1. Surname
+      const surM = clean.match(/(?:SURNAME|APELYIDO|LAST\s*NAME)[:\s]+([A-Z\s\-]+?)(?=(?:FIRST|PANGALAN|\n|$))/i);
+      if (surM && surM[1].trim() && !/^(N\/A|NONE)$/i.test(surM[1].trim())) {
+        res.surname = surM[1].trim();
+      }
+      
+      // 2. First Name
+      const firstM = clean.match(/(?:FIRST\s*NAME|PANGALAN)[:\s]+([A-Z\s\-]+?)(?=(?:MIDDLE|GITNA|\n|$))/i);
+      if (firstM && firstM[1].trim() && !/^(N\/A|NONE)$/i.test(firstM[1].trim())) {
+        res.firstName = firstM[1].trim();
+      }
+
+      // 3. Middle Name
+      const midM = clean.match(/(?:MIDDLE\s*NAME|GITNANG\s*PANGALAN)[:\s]+([A-Z\s\-]+?)(?=(?:DATE|DOB|KAPANGANAKAN|PAG|MEMBER|\n|$))/i);
+      if (midM && midM[1].trim() && !/^(N\/A|NONE)$/i.test(midM[1].trim())) {
+        res.middleName = midM[1].trim();
+      }
+
+      // 4. Combined Name
+      if (res.firstName || res.surname) {
+        const parts = [res.firstName, res.middleName, res.surname].filter(Boolean);
+        res.fullName = parts.join(' ').replace(/\s+/g, ' ').toUpperCase();
+      } else {
+        const fnM = clean.match(/(?:FULL\s*NAME|NAME|BUYER|CLIENT)[:\s]+([A-Za-z\s\.\-]+?)(?=(?:\n|$|\s+[-•]))/i);
+        if (fnM) res.fullName = fnM[1].trim().toUpperCase();
+      }
+
+      // 5. Pag-IBIG MID (12 digits)
+      const midMatch = clean.match(/(?:MID|PAG-?IBIG)[^\d]*(\d{4}[-\s]?\d{4}[-\s]?\d{4}|\d{12})/i) || 
+                       clean.match(/\b(12\d{2}[-\s]?\d{4}[-\s]?\d{4}|12\d{10})\b/) ||
+                       clean.match(/\b(\d{4}[-\s]\d{4}[-\s]\d{4})\b/);
+      if (midMatch) {
+        const rawMid = midMatch[1].replace(/[^0-9]/g, '');
+        if (rawMid.length === 12) {
+          res.pagibigMid = rawMid.replace(/(\d{4})(\d{4})(\d{4})/, '$1-$2-$3');
+        }
+      }
+
+      // 6. Contact Number (09xx xxx xxxx)
+      const phoneM = clean.match(/(?:CONTACT|PHONE|MOBILE|CELL|TEL)[^\d]*(09\d{2}[-\s]?\d{3}[-\s]?\d{4}|09\d{9}|\+639\d{9})/i) || 
+                     clean.match(/\b(09\d{2}[-\s]?\d{3}[-\s]?\d{4}|09\d{9})\b/);
+      if (phoneM) {
+        const rawP = phoneM[1].replace(/[^0-9]/g, '');
+        const normP = rawP.startsWith('63') ? '0' + rawP.slice(2) : rawP;
+        if (normP.length === 11) {
+          res.phone = normP.replace(/(\d{4})(\d{3})(\d{4})/, '$1 $2 $3');
+        } else {
+          res.phone = normP;
+        }
+      }
+
+      // 7. Email
+      const emailM = clean.match(/\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b/);
+      if (emailM) res.email = emailM[1].toLowerCase();
+
+      // 8. Monthly Income
+      const incM = clean.match(/(?:MONTHLY\s*INCOME|BASIC\s*MONTHLY\s*INCOME|INCOME|SALARY|SAHOD|GROSS)[:\s]*(?:PHP|P|₱)?\s*([\d,]+(?:\.\d{1,2})?)/i) || 
+                   clean.match(/(?:PHP|₱)\s*([\d,]+(?:\.\d{1,2})?)/i);
+      if (incM) {
+        res.income = parseFloat(incM[1].replace(/,/g, ''));
+      }
+
+      // 9. Employer
+      const empM = clean.match(/(?:EMPLOYER(?:'S)?(?:\s*BUSINESS)?\s*NAME|EMPLOYER|COMPANY|BUSINESS\s*NAME)[:\s]+([A-Za-z0-9\s,\.\-&()]+?)(?=(?:PLACE|WORK|OCCUPATION|DESIGNATION|MONTHLY|\n|$))/i);
+      if (empM && empM[1].trim() && !/^(N\/A|NONE)$/i.test(empM[1].trim())) {
+        res.employer = empM[1].trim();
+      }
+
+      // 10. Occupation / Designation
+      const occM = clean.match(/(?:OCCUPATION\s*\/?\s*DESIGNATION|OCCUPATION|DESIGNATION|POSITION|TRABAHO)[:\s]+([A-Za-z0-9\s,\.\-&()]+?)(?=(?:EMPLOYMENT|STATUS|TYPE|BASIC|\n|$))/i);
+      if (occM && occM[1].trim() && !/^(N\/A|NONE)$/i.test(occM[1].trim())) {
+        res.designation = occM[1].trim();
+      }
+
+      // 11. Civil Status
+      if (/MARRIED|KASAL/i.test(clean)) res.civilStatus = 'Married';
+      else if (/WIDOW/i.test(clean)) res.civilStatus = 'Widowed';
+      else if (/SEPARATED/i.test(clean)) res.civilStatus = 'Legally Separated';
+      else res.civilStatus = 'Single';
+
+      // 12. Occupation Track
+      if (/OFW|OVERSEAS|SEAFARER|SEAMAN|LAND\s*BASED/i.test(clean)) {
+        res.track = 'Overseas Filipino Worker (OFW)';
+      } else if (/FREELANCE|VIRTUAL\s*ASSISTANT|\bVA\b|ONLINE/i.test(clean)) {
+        res.track = 'Freelancer / Virtual Assistant';
+      } else if (/SELF-?EMPLOYED|NEGOSYO|BUSINESS\s*OWNER/i.test(clean)) {
+        res.track = 'Self-Employed / Business Owner';
+      } else {
+        res.track = 'Locally Employed';
+      }
+
+      // 13. Present Address
+      const addrM = clean.match(/(?:PRESENT\s*HOME\s*ADDRESS|HOME\s*ADDRESS|PRESENT\s*ADDRESS|ADDRESS|TIRAHAN)[:\s]+([A-Za-z0-9\s,\.\-#/]+?)(?=(?:EMAIL|MARITAL|CIVIL|EMPLOYER|\n|$))/i);
+      if (addrM && addrM[1].trim()) {
+        res.address = addrM[1].trim();
+      }
+
+      // 14. Birth Date
+      const dobM = clean.match(/(?:DATE\s*OF\s*BIRTH|DOB|BIRTHDAY|KAPANGANAKAN)[:\s]+([0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{2,4}|[A-Za-z]+\s+\d{1,2},?\s+\d{4})/i);
+      if (dobM) {
+        res.birthDate = dobM[1].trim();
+      }
+
+      return res;
+    }
+
+    function populateExtractedFields(data) {
+      if (data.fullName) document.getElementById('extName').value = data.fullName;
+      if (data.phone) document.getElementById('extPhone').value = data.phone;
+      if (data.pagibigMid) document.getElementById('extMid').value = data.pagibigMid;
+      if (data.income) document.getElementById('extIncome').value = data.income;
+      if (data.track) document.getElementById('extTrack').value = data.track;
+      if (data.civilStatus) document.getElementById('extCivilStatus').value = data.civilStatus;
+      if (data.employer) document.getElementById('extEmployer').value = data.employer;
+      if (data.email) document.getElementById('extEmail').value = data.email;
+      if (data.address) document.getElementById('extAddress').value = data.address;
+
+      evaluateExtractedCeiling();
+
+      const saveBtn = document.getElementById('btnSaveAbsorbedClient');
+      const fullEditorBtn = document.getElementById('btnOpenExtFullEditor');
+      if (saveBtn) saveBtn.disabled = false;
+      if (fullEditorBtn) fullEditorBtn.classList.remove('hidden');
+
+      const countFound = [data.fullName, data.phone, data.pagibigMid, data.income, data.employer].filter(Boolean).length;
+      const badge = document.getElementById('extractedConfidenceBadge');
+      if (badge) {
+        if (countFound >= 4) {
+          badge.textContent = `High Confidence (${countFound}/5 core fields found)`;
+          badge.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800';
+        } else if (countFound >= 2) {
+          badge.textContent = `Partial Match (${countFound}/5 core fields found)`;
+          badge.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800';
+        } else {
+          badge.textContent = 'Please Verify Fields';
+          badge.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300';
+        }
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function evaluateExtractedCeiling() {
+      const income = parseFloat(document.getElementById('extIncome').value) || 0;
+      const track = document.getElementById('extTrack').value;
+      const box = document.getElementById('extractedPreQualBox');
+      if (!box) return;
+
+      if (track === 'Overseas Filipino Worker (OFW)') {
+        box.className = 'p-3 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 text-xs text-emerald-900 dark:text-emerald-200';
+        box.innerHTML = `
+          <div class="flex items-center gap-2 font-bold mb-1">
+            <i data-lucide="plane" class="w-4 h-4 text-emerald-600"></i>
+            <span>OFW Bayani Track: 100% EXEMPT sa Ceiling!</span>
+          </div>
+          <p class="text-[11px] text-emerald-800 dark:text-emerald-300 leading-relaxed">
+            Kwalipikado sa 3% 4PH rate nang walang income ceiling restriction. Tiyaking may active Pag-IBIG MID at First-Time Homebuyer.
+          </p>
+        `;
+      } else if (income <= 0) {
+        box.className = 'p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-xs text-slate-700 dark:text-slate-300';
+        box.innerHTML = `
+          <div class="flex items-center gap-2 font-bold mb-1">
+            <i data-lucide="info" class="w-4 h-4 text-slate-500"></i>
+            <span>Pangasinan 8th Decile Ceiling: ₱34,685.83</span>
+          </div>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400">
+            I-type o i-scan ang monthly income para ma-calculate agad ang 4PH subsidy qualification.
+          </p>
+        `;
+      } else if (income <= 34685.83) {
+        box.className = 'p-3 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 text-xs text-emerald-900 dark:text-emerald-200';
+        box.innerHTML = `
+          <div class="flex items-center gap-2 font-bold mb-1 text-emerald-700 dark:text-emerald-300">
+            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+            <span>Pasok sa 4PH Pangasinan Limit (₱${income.toLocaleString()} ≤ ₱34,685.83)</span>
+          </div>
+          <p class="text-[11px] text-emerald-800 dark:text-emerald-300 leading-relaxed">
+            Pre-qualified para sa 3% subsidized interest rate (~₱4,849/mo) at ₱10,000 all-in Move-In Cash Outlay!
+          </p>
+        `;
+      } else {
+        box.className = 'p-3 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 text-xs text-amber-900 dark:text-amber-200';
+        box.innerHTML = `
+          <div class="flex items-center gap-2 font-bold mb-1 text-amber-800 dark:text-amber-300">
+            <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600"></i>
+            <span>Higit sa Pangasinan 8th Decile (₱${income.toLocaleString()} > ₱34,685.83)</span>
+          </div>
+          <p class="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
+            Kung may NCR employment, pasok hanggang ₱47,855.83. Kung purely provincial, regular Pag-IBIG loan window o co-borrower assessment ang gagamitin.
+          </p>
+        `;
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function saveAbsorbedClient() {
+      const name = document.getElementById('extName').value.trim();
+      const phone = document.getElementById('extPhone').value.trim();
+      if (!name) {
+        alert('Pakilagay ang buong pangalan ng buyer bago mag-save.');
+        document.getElementById('extName').focus();
+        return;
+      }
+      if (!phone) {
+        alert('Pakilagay ang contact number ng buyer.');
+        document.getElementById('extPhone').focus();
+        return;
+      }
+
+      const income = parseFloat(document.getElementById('extIncome').value) || 0;
+      const track = document.getElementById('extTrack').value;
+      const pagibigMid = document.getElementById('extMid').value.trim();
+
+      const newId = 'DHU-' + new Date().getFullYear() + '-' + String(clients.length + 1).padStart(3, '0');
+      const now = new Date().toISOString().split('T')[0];
+
+      const newClient = {
+        id: newId,
+        name: name,
+        phone: phone,
+        email: document.getElementById('extEmail').value.trim(),
+        salesConsultant: 'John Edcee Cañizares (0919 368 2062)',
+        agencyManager: 'Rowena Comilang (North Forbes Realty / Deca Gold)',
+        messenger: '',
+        status: 'Pre-qualified',
+        statusCode: 1,
+        track: track,
+        employer: document.getElementById('extEmployer').value.trim(),
+        designation: 'Principal Beneficiary',
+        monthlyIncome: income,
+        pagibigMid: pagibigMid,
+        civilStatus: document.getElementById('extCivilStatus').value,
+        birthDate: '',
+        address: document.getElementById('extAddress').value.trim(),
+        preferredPhase: 'Deca Homes Urdaneta - 2-Storey Townhouse (40 sqm)',
+        reservationStatus: 'Pending Reservation (₱5,000)',
+        advanceDpStatus: 'Not Started (₱5,000 - 2 mos)',
+        whiteFormImage: currentAbsorbedImageThumbnail || null,
+        requirements: {
+          govId: false,
+          proofOfIncome: false,
+          psaBirthOrMarriage: false,
+          idPictures: false,
+          tinVerification: false,
+          pagibigContribution: !!pagibigMid,
+          signedWhiteForm: true,
+          siteViewing: false,
+          officeSeminar: false
+        },
+        notes: `Auto-absorbed from signed White Form on ${now}. Income: ₱${income.toLocaleString()} (${track}). Pag-IBIG MID: ${pagibigMid || 'N/A'}.`,
+        dateCreated: now,
+        lastUpdated: now
+      };
+
+      clients.unshift(newClient);
+      saveClientsToStorage(true);
+      closeAbsorbModal();
+      renderApp();
+
+      showToast(
+        'White Form Absorbed & Saved! 🎉',
+        `Matagumpay na na-encode si ${name} bilang (1) Pre-Qualified Buyer. May mga bagong record na hindi pa naka-sync sa Google Sheets!`,
+        true
+      );
+    }
+
+    function openExtractedInFullEditor() {
+      const name = document.getElementById('extName').value.trim();
+      const phone = document.getElementById('extPhone').value.trim();
+      const income = parseFloat(document.getElementById('extIncome').value) || 0;
+      const mid = document.getElementById('extMid').value.trim();
+      const track = document.getElementById('extTrack').value;
+      const civilStatus = document.getElementById('extCivilStatus').value;
+      const employer = document.getElementById('extEmployer').value.trim();
+      const address = document.getElementById('extAddress').value.trim();
+      const email = document.getElementById('extEmail').value.trim();
+
+      closeAbsorbModal();
+      openAddModal();
+
+      if (name) document.getElementById('modalName').value = name;
+      if (phone) document.getElementById('modalPhone').value = phone;
+      if (income) document.getElementById('modalIncome').value = income;
+      if (mid) document.getElementById('modalPagibigMid').value = mid;
+      if (track) document.getElementById('modalTrack').value = track;
+      if (civilStatus) document.getElementById('modalCivilStatus').value = civilStatus;
+      if (employer) document.getElementById('modalEmployer').value = employer;
+      if (email || address) document.getElementById('modalNotes').value = `Email: ${email}\nAddress: ${address}`;
+      
+      document.getElementById('chk-signedWhiteForm').checked = true;
+      document.getElementById('chk-pagibigContribution').checked = !!mid;
+      checkIncomeCeiling();
+    }
+
+    function viewWhiteFormImage(id) {
+      const c = clients.find(client => client.id === id);
+      if (!c || !c.whiteFormImage) {
+        alert('Walang naka-attach na White Form image para sa buyer na ito.');
+        return;
+      }
+      document.getElementById('viewImageModalTitle').textContent = `White Form: ${c.name}`;
+      document.getElementById('viewImageModalSub').textContent = `ID: ${c.id} • Attached on ${c.dateCreated || 'N/A'}`;
+      document.getElementById('fullWhiteFormImg').src = c.whiteFormImage;
+      
+      const dl = document.getElementById('btnDownloadWhiteFormImg');
+      dl.href = c.whiteFormImage;
+      dl.download = `WhiteForm_${(c.name || 'Buyer').replace(/\s+/g, '_')}.jpg`;
+      
+      document.getElementById('viewImageModal').classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeViewImageModal() {
+      document.getElementById('viewImageModal').classList.add('hidden');
+    }
+
+    function openAbsorbedImageFull() {
+      const src = document.getElementById('absorbedImgPreview').src;
+      if (!src) return;
+      document.getElementById('viewImageModalTitle').textContent = 'Absorbed White Form Preview';
+      document.getElementById('viewImageModalSub').textContent = 'Full scan preview';
+      document.getElementById('fullWhiteFormImg').src = src;
+      const dl = document.getElementById('btnDownloadWhiteFormImg');
+      dl.href = src;
+      dl.download = 'WhiteForm_Absorbed_Scan.jpg';
+      document.getElementById('viewImageModal').classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // Fallback: Copy Formatted Table & Open sheets.new
+    function copyAndOpenSheetsNew() {
+      const headers = ['ID', 'Full Name', 'Sales Consultant', 'Agency Manager', 'Phone', 'Email', 'Status', 'Track', 'Employer / Source', 'Monthly Income', 'Pag-IBIG MID', 'Civil Status', 'Reservation', 'Advance DP', 'Checklist Score', 'Notes', 'Last Updated'];
+      
+      const rows = clients.map(c => {
+        const score = getReqScore(c.requirements);
+        return [
+          c.id,
+          c.name || '',
+          c.salesConsultant || 'John Edcee Cañizares (0919 368 2062)',
+          c.agencyManager || 'Rowena Comilang (North Forbes Realty)',
+          c.phone || '',
+          c.email || '',
+          c.status || '',
+          c.track || '',
+          c.employer || '',
+          c.monthlyIncome || 0,
+          c.pagibigMid || '',
+          c.civilStatus || '',
+          c.reservationStatus || '',
+          c.advanceDpStatus || '',
+          `${score.count}/${score.total}`,
+          (c.notes || '').replace(/[\r\n]+/g, ' '),
+          c.lastUpdated || ''
+        ].join('\t'); // Tab-separated for direct Sheets paste
+      });
+
+      const tsvContent = [headers.join('\t'), ...rows].join('\n');
+
+      navigator.clipboard.writeText(tsvContent).then(() => {
+        alert('Kinopya na sa clipboard ang kumpletong formatted data!\n\nMagbubukas ngayon ang sheets.new sa iyong browser. Pindutin lamang ang Ctrl + V (Paste) sa Cell A1 para mailagay ang lahat!');
+        window.open('https://sheets.new', '_blank');
+      }).catch(() => {
+        window.open('https://sheets.new', '_blank');
+      });
+    }
+
+    function copyAppsScriptCode() {
+      const code = document.getElementById('appsScriptTemplate').value;
+      navigator.clipboard.writeText(code).then(() => {
+        const label = document.getElementById('copyCodeText');
+        label.innerText = 'Copied!';
+        setTimeout(() => { label.innerText = 'Copy Script'; }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
