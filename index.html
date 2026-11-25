@@ -202,7 +202,7 @@
           <i data-lucide="smartphone" class="w-3.5 h-3.5 text-amber-400"></i>
           <span class="hidden xl:inline">Post Maker</span>
         </a>
-        <a href="../white-form-assistant/index.html" target="_blank" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition shadow-sm">
+        <a href="https://jceecanizares.github.io/JC-DECA-White-Form/" target="_blank" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition shadow-sm" title="Buksan ang Public White Form Assistant">
           <i data-lucide="file-text" class="w-3.5 h-3.5 text-amber-400"></i>
           <span class="hidden sm:inline">White Form</span> Assistant
         </a>
@@ -1144,18 +1144,65 @@ function doPost(e) {
     ];
     
     var existingIndex = existingIds.indexOf(c.id);
+    var targetRow = (existingIndex !== -1) ? (existingIndex + 2) : (sheet.getLastRow() + 1);
     if (existingIndex !== -1) {
-      sheet.getRange(existingIndex + 2, 1, 1, rowData.length).setValues([rowData]);
+      sheet.getRange(targetRow, 1, 1, rowData.length).setValues([rowData]);
     } else {
       sheet.appendRow(rowData);
+      targetRow = sheet.getLastRow();
       existingIds.push(c.id);
     }
+    
+    // Auto-Format Row (Exact Standard Deca Vault Design: Arial 10, #E2E8F0 borders, Phone Amber Badge)
+    applyStandardRowDesign(sheet, targetRow, rowData.length);
   });
   
-  sheet.autoResizeColumns(1, headers.length);
   return ContentService.createTextOutput(JSON.stringify({
     status: "success", updatedCount: incoming.length, url: ss.getUrl()
   })).setMimeType(ContentService.MimeType.JSON);
+}
+
+// Helper: Standard Deca Vault Row Formatting (Matches Sheet Design)
+function applyStandardRowDesign(sheet, rowIdx, colCount) {
+  var range = sheet.getRange(rowIdx, 1, 1, colCount);
+  range.setFontFamily("Arial")
+       .setFontSize(10)
+       .setFontWeight("normal")
+       .setFontColor("#000000")
+       .setBackground("#FFFFFF")
+       .setVerticalAlignment("middle")
+       .setWrap(false)
+       .setBorder(true, true, true, true, true, true, "#E2E8F0", SpreadsheetApp.BorderStyle.SOLID);
+
+  sheet.getRange(rowIdx, 1).setFontWeight("bold").setFontColor("#334155").setHorizontalAlignment("center");
+  sheet.getRange(rowIdx, 2).setFontWeight("bold").setFontColor("#0F172A").setHorizontalAlignment("left");
+  sheet.getRange(rowIdx, 3).setHorizontalAlignment("center");
+  sheet.getRange(rowIdx, 4).setFontColor("#475569").setHorizontalAlignment("left");
+  sheet.getRange(rowIdx, 5).setNumberFormat('@').setFontWeight("bold").setFontColor("#92400E").setBackground("#FEF3C7").setHorizontalAlignment("center");
+  sheet.getRange(rowIdx, 6).setHorizontalAlignment("center");
+  sheet.getRange(rowIdx, 7).setHorizontalAlignment("left");
+  sheet.getRange(rowIdx, 8).setFontWeight("bold").setHorizontalAlignment("center");
+  sheet.getRange(rowIdx, 9).setHorizontalAlignment("center");
+  sheet.getRange(rowIdx, 10).setNumberFormat('"₱"#,##0.00').setHorizontalAlignment("right");
+  sheet.getRange(rowIdx, 11).setNumberFormat('@').setHorizontalAlignment("center");
+  sheet.getRange(rowIdx, 12).setHorizontalAlignment("center");
+  sheet.getRange(rowIdx, 13).setFontWeight("bold").setHorizontalAlignment("center");
+  sheet.getRange(rowIdx, 14).setWrap(true).setHorizontalAlignment("center");
+  sheet.getRange(rowIdx, 15).setFontWeight("bold").setHorizontalAlignment("center");
+  sheet.getRange(rowIdx, 16).setWrap(true).setHorizontalAlignment("left");
+  sheet.getRange(rowIdx, 17).setHorizontalAlignment("center");
+  sheet.setRowHeight(rowIdx, 32);
+}
+
+// 1-Click Fix: Re-apply standard design to all existing rows (fixes any plain rows)
+function formatAllRowsStandardDesign() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("SC - JC Cañizares") || ss.getActiveSheet();
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return;
+  for (var r = 2; r <= lastRow; r++) {
+    applyStandardRowDesign(sheet, r, 17);
+  }
 }
 
 // 3. 2-WAY SYNC: PULL CLOUD DATA TO MOBILE OR LAPTOP (doGet)
@@ -3027,14 +3074,20 @@ function doGet(e) {
       if (window.lucide) lucide.createIcons();
     }
 
-    // Fallback: Copy Formatted Table & Open sheets.new
-    function copyAndOpenSheetsNew() {
+    // Fallback: Copy Formatted HTML Table (+ TSV) & Open sheets.new
+    function escapeHtmlCell(val) {
+      return String(val || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    async function copyAndOpenSheetsNew() {
       const headers = ['ID', 'Full Name', 'Sales Consultant', 'Agency Manager', 'Phone', 'Email', 'Status', 'Track', 'Employer / Source', 'Monthly Income', 'Pag-IBIG MID', 'Civil Status', 'Reservation', 'Advance DP', 'Checklist Score', 'Notes', 'Last Updated'];
       
-      const rows = clients.map(c => {
+      const rowsData = clients.map(c => {
         const score = getReqScore(c.requirements);
+        const incomeNum = Number(c.monthlyIncome || 0);
+        const incomeFormatted = incomeNum ? ('₱' + incomeNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) : '₱0.00';
         return [
-          c.id,
+          c.id || '',
           c.name || '',
           c.salesConsultant || 'John Edcee Cañizares (0919 368 2062)',
           c.agencyManager || 'Rowena Comilang (North Forbes Realty)',
@@ -3043,7 +3096,7 @@ function doGet(e) {
           c.status || '',
           c.track || '',
           c.employer || '',
-          c.monthlyIncome || 0,
+          incomeFormatted,
           c.pagibigMid || '',
           c.civilStatus || '',
           c.reservationStatus || '',
@@ -3051,17 +3104,58 @@ function doGet(e) {
           `${score.count}/${score.total}`,
           (c.notes || '').replace(/[\r\n]+/g, ' '),
           c.lastUpdated || ''
-        ].join('\t'); // Tab-separated for direct Sheets paste
+        ];
       });
 
-      const tsvContent = [headers.join('\t'), ...rows].join('\n');
+      const tsvContent = [headers.join('\t'), ...rowsData.map(r => r.join('\t'))].join('\n');
 
-      navigator.clipboard.writeText(tsvContent).then(() => {
+      const headerHtml = headers.map(h =>
+        `<th style="background:#991B1B;color:#FFFFFF;font-family:Arial,sans-serif;font-size:11pt;font-weight:bold;text-align:center;vertical-align:middle;border:1px solid #E2E8F0;padding:6px 8px;">${escapeHtmlCell(h)}</th>`
+      ).join('');
+
+      const colStyles = [
+        'font-weight:bold;color:#334155;text-align:center;',
+        'font-weight:bold;color:#0F172A;text-align:left;',
+        'text-align:center;',
+        'color:#475569;text-align:left;',
+        'font-weight:bold;color:#92400E;background:#FEF3C7;text-align:center;',
+        'text-align:center;',
+        'text-align:left;',
+        'font-weight:bold;text-align:center;',
+        'text-align:center;',
+        'text-align:right;',
+        'text-align:center;',
+        'text-align:center;',
+        'font-weight:bold;text-align:center;',
+        'text-align:center;',
+        'font-weight:bold;text-align:center;',
+        'text-align:left;',
+        'text-align:center;'
+      ];
+
+      const bodyHtml = rowsData.map(r =>
+        `<tr style="height:32px;background:#FFFFFF;">${r.map((val, idx) =>
+          `<td style="font-family:Arial,sans-serif;font-size:10pt;vertical-align:middle;border:1px solid #E2E8F0;padding:4px 8px;${colStyles[idx] || ''}">${escapeHtmlCell(val)}</td>`
+        ).join('')}</tr>`
+      ).join('');
+
+      const htmlTable = `<table style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:10pt;"><thead><tr style="height:42px;">${headerHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>`;
+
+      try {
+        if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+          const item = new ClipboardItem({
+            'text/html': new Blob([htmlTable], { type: 'text/html' }),
+            'text/plain': new Blob([tsvContent], { type: 'text/plain' })
+          });
+          await navigator.clipboard.write([item]);
+        } else {
+          await navigator.clipboard.writeText(tsvContent);
+        }
         alert('Kinopya na sa clipboard ang kumpletong formatted data!\n\nMagbubukas ngayon ang sheets.new sa iyong browser. Pindutin lamang ang Ctrl + V (Paste) sa Cell A1 para mailagay ang lahat!');
-        window.open('https://sheets.new', '_blank');
-      }).catch(() => {
-        window.open('https://sheets.new', '_blank');
-      });
+      } catch (e) {
+        try { await navigator.clipboard.writeText(tsvContent); } catch (_) {}
+      }
+      window.open('https://sheets.new', '_blank');
     }
 
     function copyAppsScriptCode() {
